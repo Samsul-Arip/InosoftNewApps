@@ -33,6 +33,7 @@ Solusi ini dirancang untuk menunjukkan:
 - [Fitur Aplikasi & UI Behavior](#-fitur-aplikasi--ui-behavior)
   - [Fitur Utama (Core Requirements)](#fitur-utama-core-requirements)
   - [Fitur Bonus (Bonus Features)](#fitur-bonus-bonus-features)
+- [Bukti Hasil Build & Screenshots (Android & iOS)](#-bukti-hasil-build--screenshots-android--ios)
 - [Panduan Setup & Konfigurasi API Key](#-panduan-setup--konfigurasi-api-key)
 - [Prasyarat Lingkungan (Prerequisites)](#-prasyarat-lingkungan-prerequisites)
 - [Cara Menjalankan Aplikasi & Pengujian](#-cara-menjalankan-aplikasi--pengujian)
@@ -174,6 +175,22 @@ NewsAPI.org pada paket gratis (*developer tier*) adakalanya mengembalikan 0 arti
 - [x] **Full-Screen Image Viewer**: Mengetuk gambar artikel membuka dialog modal penampil gambar resolusi penuh (*modal full-screen image viewer*) dengan backdrop redup dan tombol tutup.
 - [x] **Improved Accessibility & Semantic Labels**: Penggunaan `contentDescription` yang jelas pada seluruh ikon dan gambar, penataan hierarki teks yang mudah diakses pembaca layar, dan pemisahan layout yang responsif.
 - [x] **Safe Navigation Parameter Encoding**: URL artikel dan karakter khusus di-encode secara aman menggunakan `encodeFull = true` pada Navigation Compose sehingga bebas dari potensi *routing crashes*.
+
+---
+
+## 📱 Bukti Hasil Build & Screenshots (Android & iOS)
+
+Aplikasi telah berhasil di-build dan diuji secara langsung (*native*) pada emulator **Android** (Google Pixel) dan simulator **Apple iOS** (iPhone 16e - iOS 18.6):
+
+### 1. Tampilan Aplikasi di Android (Pixel Emulator)
+| Android — Halaman Daftar Berita | Android — Halaman Detail Berita |
+| :---: | :---: |
+| <img src="docs/screenshots/android_article_list.png" width="300" alt="Android Article List" /> | <img src="docs/screenshots/android_article_detail.png" width="300" alt="Android Article Detail" /> |
+
+### 2. Tampilan Aplikasi di iOS (iPhone 16e Simulator)
+| iOS (iPhone 16e) — Halaman Daftar Berita | iOS (iPhone 16e) — Halaman Detail Berita |
+| :---: | :---: |
+| <img src="docs/screenshots/ios_article_list.png" width="300" alt="iOS Article List" /> | <img src="docs/screenshots/ios_article_detail.png" width="300" alt="iOS Article Detail" /> |
 
 ---
 
