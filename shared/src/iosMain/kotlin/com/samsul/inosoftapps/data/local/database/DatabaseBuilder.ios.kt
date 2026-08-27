@@ -1,0 +1,26 @@
+package com.samsul.inosoftapps.data.local.database
+
+import androidx.room.Room
+import androidx.room.RoomDatabase
+import kotlinx.cinterop.ExperimentalForeignApi
+import platform.Foundation.NSDocumentDirectory
+import platform.Foundation.NSFileManager
+import platform.Foundation.NSUserDomainMask
+
+/**
+ * Returns [RoomDatabase.Builder] for iOS target using NSDocumentDirectory.
+ */
+@OptIn(ExperimentalForeignApi::class)
+fun getDatabaseBuilder(): RoomDatabase.Builder<NewsDatabase> {
+    val documentDirectory = NSFileManager.defaultManager.URLForDirectory(
+        directory = NSDocumentDirectory,
+        inDomain = NSUserDomainMask,
+        appropriateForURL = null,
+        create = false,
+        error = null
+    )
+    val dbFilePath = requireNotNull(documentDirectory?.path) + "/news_reader.db"
+    return Room.databaseBuilder<NewsDatabase>(
+        name = dbFilePath
+    )
+}
