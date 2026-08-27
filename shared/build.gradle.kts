@@ -10,6 +10,7 @@ plugins {
     alias(libs.plugins.androidxRoom)
 }
 
+
 room {
     schemaDirectory("$projectDir/schemas")
 }

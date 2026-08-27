@@ -11,7 +11,7 @@ import platform.Foundation.NSUserDomainMask
  * Returns [RoomDatabase.Builder] for iOS target using NSDocumentDirectory.
  */
 @OptIn(ExperimentalForeignApi::class)
-fun getDatabaseBuilder(): RoomDatabase.Builder<NewsDatabase> {
+actual fun getDatabaseBuilder(context: Any?): RoomDatabase.Builder<NewsDatabase> {
     val documentDirectory = NSFileManager.defaultManager.URLForDirectory(
         directory = NSDocumentDirectory,
         inDomain = NSUserDomainMask,
