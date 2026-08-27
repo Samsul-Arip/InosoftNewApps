@@ -387,9 +387,8 @@ Berikut adalah pencatatan tahapan rekayasa representatif dengan **prompt asli ap
 ### Task 8: Stateless UI Decomposition & Compose Previews
 * **Prompt Asli (Verbatim)**:
   > *"Tolong tambahin fungsi @Preview di semua komponen dan screen UI yang udah kita buat ya (ArticleCard, LoadingView, EmptyView, FullScreenImageViewer, ArticleListScreen, dan ArticleDetailScreen). Bikinin juga: 1. Pisahin composable jadi stateless content (misal: ArticleListContent dan ArticleDetailContent) biar screen-nya bisa langsung di-preview dengan dummy data tanpa perlu manggil ViewModel atau Koin. 2. Buatin 2 variasi preview di tiap komponen: Light Mode dan Dark Mode. 3. Kasih dummy data artikel yang realistis (ada judul, deskripsi, gambar placeholder, nama media, sama tanggal) biar pas diliat di panel Preview Android Studio langsung keliatan cakep dan rapi."*
-* **Evaluasi & Perbaikan Kandidat (Critical Review & Fix)**:
-  * *Temuan Masalah*: Preview awal memanggil Screen yang meng-inject `koinViewModel()`, menyebabkan error rendering di Android Studio Preview.
-  * *Perbaikan*: Mendekomposisi layar menjadi Stateful Screen dan Stateless Content Composable (`ArticleListContent`, `ArticleDetailContent`), serta menyediakan `SampleArticles` untuk render preview visual instan di Android Studio baik di Light Mode maupun Dark Mode.
+* **Output yang Dihasilkan AI**:
+  Mendekomposisi antarmuka menjadi Stateful Screen dan Stateless Content Composable (`ArticleListContent`, `ArticleDetailContent`), menambahkan fungsi `@Preview` untuk mode *Light* dan *Dark* pada seluruh komponen dan layar, serta menyediakan penyedia data sampel realistis (`SampleData`) untuk visualisasi instan di Android Studio Preview tanpa dependensi runtime ViewModel atau Koin.
 
 ---
 
