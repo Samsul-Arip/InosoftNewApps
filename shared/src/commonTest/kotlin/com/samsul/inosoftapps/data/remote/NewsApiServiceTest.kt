@@ -1,7 +1,7 @@
 package com.samsul.inosoftapps.data.remote
 
-import com.samsul.inosoftapps.data.remote.mapper.toDomain
-import com.samsul.inosoftapps.data.remote.mapper.toDomainList
+import com.samsul.inosoftapps.data.mapper.toDomain
+import com.samsul.inosoftapps.data.mapper.toDomainList
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
 import io.ktor.http.HttpHeaders

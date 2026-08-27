@@ -1,21 +1,25 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.kotlinAndroid)
     alias(libs.plugins.composeCompiler)
 }
 
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 kotlin {
     compilerOptions {
         jvmTarget = JvmTarget.JVM_11
     }
 }
+
 dependencies {
     implementation(project(":shared"))
 
     implementation(libs.androidx.activity.compose)
+
+    // Koin Android
+    implementation(libs.koin.core)
+    implementation(libs.koin.android)
 
     implementation(libs.compose.uiToolingPreview)
     debugImplementation(libs.compose.uiTooling)

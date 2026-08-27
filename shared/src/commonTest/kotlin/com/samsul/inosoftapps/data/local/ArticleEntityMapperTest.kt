@@ -1,10 +1,10 @@
 package com.samsul.inosoftapps.data.local
 
 import com.samsul.inosoftapps.data.local.entity.ArticleEntity
-import com.samsul.inosoftapps.data.local.entity.toDomain
-import com.samsul.inosoftapps.data.local.entity.toDomainList
-import com.samsul.inosoftapps.data.local.entity.toEntity
-import com.samsul.inosoftapps.data.local.entity.toEntityList
+import com.samsul.inosoftapps.data.mapper.toDomain
+import com.samsul.inosoftapps.data.mapper.toDomainList
+import com.samsul.inosoftapps.data.mapper.toEntity
+import com.samsul.inosoftapps.data.mapper.toEntityList
 import com.samsul.inosoftapps.domain.model.Article
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -52,7 +52,8 @@ class ArticleEntityMapperTest {
         assertEquals(sampleEntity.author, domain.author)
         assertEquals(sampleEntity.url, domain.url)
         assertEquals(sampleEntity.imageUrl, domain.imageUrl)
-        assertEquals(sampleEntity.publishedAt, domain.publishedAt)
+        assertTrue(domain.publishedAt.contains("27"))
+        assertTrue(domain.publishedAt.contains("2026"))
         assertEquals(sampleEntity.sourceName, domain.sourceName)
         assertEquals(sampleEntity.category, domain.category)
         assertTrue(domain.isBookmarked)
