@@ -458,5 +458,4 @@ Berikut adalah pencatatan tahapan rekayasa representatif dengan **prompt asli ap
 
 **Samsul Aripin**
 - GitHub: [https://github.com/Samsul-Arip/InosoftNewApps](https://github.com/Samsul-Arip/InosoftNewApps)
-- Email Pengiriman: `hrd@inosoftweb.com`
 - Posisi: Mobile Developer Technical Test - PT Inosoft Trans Sistem
