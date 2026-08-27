@@ -38,7 +38,7 @@ Aplikasi ini menerapkan **Clean Architecture**, prinsip **Offline-First Single S
 | **UI Framework** | Compose Multiplatform | `1.7.3` | Deklaratif UI terbagi penuh antara Android & iOS |
 | **Design System** | Material Design 3 | `1.7.3` | Dynamic Light & Dark Theme, Typography, M3 Components |
 | **Navigation** | Navigation Compose KMP | `2.8.0-alpha10` | Navigasi deklaratif antar layar dengan *safe parameter encoding* |
-| **Local Database** | AndroidX Room KMP + SQLite Bundled | `2.7.0-alpha13` | Penyimpanan lokal SQLite terenkapsulasi sebagai Single Source of Truth |
+| **Local DB** | Room for KMP (Shared Persistence) | `2.7.0-alpha13` | Penyimpanan lokal Room Database terenkapsulasi sebagai Single Source of Truth |
 | **Network Client** | Ktor Client 3.x | `3.1.1` | HTTP client multiplatform (OkHttp engine di Android, Darwin di iOS) |
 | **Serialization** | Kotlinx Serialization JSON | `1.8.0` | Parsing JSON DTO NewsAPI secara efisien |
 | **Dependency Injection**| Koin Multiplatform | `4.0.2` | DI deklaratif dengan dukungan Koin ViewModel & Compose Multiplatform |
@@ -61,7 +61,7 @@ com.samsul.inosoftapps/
 │   ├── repository/                  # Repository Interfaces (ArticleRepository)
 │   └── usecase/                     # Use Cases (Get, Refresh, Detail, Search)
 ├── data/                            # Data Providers & Implementation
-│   ├── remote/                      # Ktor API Service, DTOs & Smart Fallback
+│   ├── remote/                      # Ktor API Service & DTOs
 │   ├── local/                       # Room KMP Database, DAO, Entities & Platform Builders
 │   ├── mapper/                      # DTO <-> Entity <-> Domain Mappers & Date Formatter
 │   └── repository/                  # Repository Implementations (SSOT Handler)
@@ -82,7 +82,7 @@ com.samsul.inosoftapps/
 
 Aplikasi menerapkan konsep **Offline-First Single Source of Truth (SSOT)**:
 1. **UI Selalu Mengamati Database Lokal (Room DB)**: Tampilan UI secara reaktif mengonsumsi `Flow<List<Article>>` dari database lokal Room.
-2. **Sinkronisasi Remote ke Lokal**: Saat proses *refresh* (atau inisialisasi aplikasi), Ktor API mengambil berita terkini dari NewsAPI dan menyimpannya secara atomik (`@Transaction clearAndInsert`) ke dalam Room DB.
+2. **Sinkronisasi Remote ke Lokal**: Saat proses *refresh* (atau inisialisasi aplikasi), Ktor API mengambil berita terkini dari NewsAPI dan menyimpannya secara atomik (`@Transaction clearAndInsert`) ke dalam Room Database.
 3. **Ketahanan Mode Offline**: Apabila internet terputus atau koneksi *timeout*, data cache di database Room **tidak akan terhapus**. UI tetap menampilkan berita tersimpan dan menampilkan banner halus **'Mode Offline'** disertai notifikasi *Snackbar* non-blocking.
 
 ```mermaid
@@ -106,22 +106,31 @@ graph TD
 
 ## ✨ Fitur Aplikasi
 
-### Fitur Utama
-- [x] **Top Headlines Feed**: Menampilkan daftar berita terkini dengan gambar thumbnail, judul (max 2 baris), deskripsi ringkas, badge media sumber, dan tanggal terbit.
-- [x] **Filter Kategori Dinamis**: Pilihan kategori (*Semua, Bisnis, Teknologi, Olahraga, Kesehatan, Sains, Hiburan*) dengan chips interaktif.
-- [x] **Offline-First Caching**: Berita disimpan otomatis di SQLite lokal sehingga dapat dibaca kapan saja tanpa koneksi internet.
-- [x] **Pagination & Infinite Scroll (Load More)**: Mendukung pemuatan halaman berita berikutnya secara dinamis saat pengguna scroll mendekati akhir daftar, menggabungkan (*append*) data baru ke Room DB, dan menampilkan indikator loading di bagian bawah feed.
-- [x] **Pencarian Lokal Reaktif**: Fitur pencarian instan berdasarkan kata kunci pada judul maupun deskripsi artikel yang ada di cache.
-- [x] **Pull-to-Refresh Gesture**: Gesture tarik ke bawah menggunakan Material 3 `PullToRefreshBox` untuk me-reset kembali ke halaman 1 dan memperbarui berita.
-- [x] **Banner Mode Offline**: Indikator animasi otomatis saat berada dalam mode offline tanpa mengganggu pengalaman membaca.
-- [x] **Non-Blocking Error Snackbar**: Pesan kesalahan koneksi disajikan secara elegan melalui *Snackbar* tanpa menutupi konten.
-- [x] **Halaman Detail Lengkap**: Menyajikan gambar *hero* besar, nama penulis, tanggal terbit lokal (*WIB*), isi konten lengkap, dan tautan artikel asli.
-- [x] **Material 3 Light & Dark Theme**: Tampilan responsif yang otomatis menyesuaikan tema gelap atau terang perangkat.
+### Fitur Utama (Core Requirements)
 
-### Fitur Bonus
-- [x] **Modal Full-Screen Image Viewer**: Mengklik thumbnail atau gambar *hero* membuka dialog modal resolusi penuh dengan latar belakang redup (*backdrop dim*) dan tombol tutup.
-- [x] **Safe Navigation Parameter Encoding**: URL artikel atau karakter khusus (`/`, `?`, `&`, `#`) di-encode dengan `encodeFull = true` pada Navigation Compose sehingga bebas dari *routing crashes*.
-- [x] **Stateless UI Decomposition & @Preview**: Pemisahan `ArticleListContent` dan `ArticleDetailContent` yang memungkinkan *preview visual* instan di Android Studio (mode *Light* dan *Dark*) dengan data sampel realistis.
+#### 1. Screen 1: Article List
+- [x] **Daftar Berita (Article List)**: Menampilkan judul artikel, deskripsi singkat, gambar thumbnail, dan tanggal publikasi terformat.
+- [x] **Offline Caching (Room Database)**: Ketika perangkat offline atau request API gagal, menampilkan data artikel yang tersimpan di Room Database.
+- [x] **Loading State**: Menampilkan indikator loading yang jelas saat pengambilan data awal atau penyegaran berlangsung.
+- [x] **Non-Blocking Error Handling**: Menampilkan banner status offline dan pesan kesalahan/Snackbar yang informatif jika fetch gagal tanpa memblokir konten yang telah ada di cache.
+- [x] **Graceful Empty State**: Tampilan kosong yang rapi jika database Room belum memiliki data, lengkap dengan tombol coba lagi (*retry*).
+- [x] **Filter Kategori Dinamis & Pencarian**: Filter kategori interaktif (*Semua, Bisnis, Teknologi, Olahraga, Kesehatan, Sains, Hiburan*) dan pencarian instan pada judul/deskripsi artikel.
+
+#### 2. Screen 2: Article Detail
+- [x] **Detail Artikel Lengkap**: Menampilkan judul lengkap, deskripsi, gambar utama (*hero image*), nama penulis/sumber, dan tanggal publikasi terformat.
+- [x] **Navigasi Kembali Lengkap**: Mendukung navigasi kembali menggunakan tombol kembali pada *App Bar* maupun tombol *System Back Navigation*.
+
+---
+
+### Fitur Bonus (Bonus Features)
+- [x] **Pagination / Load More on Scroll**: Memuat halaman berita berikutnya secara dinamis saat pengguna melakukan scroll mendekati item terbawah list, menggabungkan (*append*) data baru ke Room Database, serta menampilkan indikator loading di bagian bawah feed.
+- [x] **Pull-to-Refresh**: Gesture tarik ke bawah menggunakan Material 3 `PullToRefreshBox` untuk memuat ulang data ke halaman 1 dan menyinkronkan kembali ke Room Database.
+- [x] **Dark Mode Support**: Dukungan penuh Material 3 Dynamic Theme yang otomatis menyesuaikan tema gelap atau terang perangkat pengguna.
+- [x] **KMP Unit Tests in commonTest**: Rangkaian 35+ Unit Tests di source set `shared/commonTest` yang menguji Domain Models, Repository, Room DAO, Use Cases, Mappers, dan ViewModels menggunakan Test Coroutine Dispatcher dan Turbine.
+- [x] **Additional Platform Targets (iOS)**: Konfigurasi shared framework Kotlin Multiplatform untuk target Apple iOS (iOS Simulator & Device).
+- [x] **Full-Screen Image Viewer**: Mengetuk gambar artikel membuka dialog modal penampil gambar resolusi penuh (*modal full-screen image viewer*) dengan backdrop redup dan tombol tutup.
+- [x] **Improved Accessibility & Semantic Labels**: Penggunaan `contentDescription` yang jelas pada seluruh ikon dan gambar, penataan hierarki teks yang mudah diakses pembaca layar, dan pemisahan layout yang responsif.
+- [x] **Safe Navigation Parameter Encoding**: URL artikel dan karakter khusus di-encode secara aman menggunakan `encodeFull = true` pada Navigation Compose sehingga bebas dari potensi *routing crashes*.
 
 ---
 
@@ -131,13 +140,22 @@ Sebelum menjalankan project, pastikan lingkungan pengembangan Anda telah memenuh
 - **JDK**: Java Development Kit **JDK 17** atau **JDK 21** (direkomendasikan JDK 21).
 - **IDE**: **Android Studio Ladybug (2024.2+)** atau versi yang lebih baru dengan plugin **Kotlin Multiplatform Mobile**.
 - **Android SDK**: Android SDK Platform API 35 dengan Minimum SDK API 24 (Android 7.0 Nougat).
-- **iOS (Opsional)**: macOS dengan **Xcode 15 / 16** dan CocoaPods jika ingin menjalankan simulasi iOS.
+- **iOS (Opsional)**: macOS dengan **Xcode 15 / 16** jika ingin menjalankan simulasi iOS.
 
 ---
 
 ## 🔑 Panduan Setup & Konfigurasi API Key
 
-Aplikasi menggunakan konfigurasi aman dan dinamis berbasis `local.properties` (terproteksi di `.gitignore`) yang akan di-generate otomatis saat proses build ke dalam `BuildKonfig` & `ApiConfigProvider`:
+Sesuai dengan ketentuan tes teknis, API key tidak boleh di-commit secara langsung ke repositori Git. Proyek ini menggunakan mekanisme konfigurasi lokal `local.properties` (terproteksi di `.gitignore`) yang akan di-generate otomatis saat proses build oleh Gradle ke dalam object `BuildKonfig` pada modul `shared`:
+
+### Endpoint API yang Digunakan:
+- **Base URL**: `https://newsapi.org/v2`
+- **Top Headlines**: `https://newsapi.org/v2/top-headlines?country=id&apiKey=YOUR_API_KEY`
+- **Search Everything**: `https://newsapi.org/v2/everything?q={query}&sortBy=publishedAt&apiKey=YOUR_API_KEY`
+
+---
+
+### Langkah Setup Konfigurasi:
 
 1. **Clone Repositori**:
    ```bash
@@ -145,22 +163,22 @@ Aplikasi menggunakan konfigurasi aman dan dinamis berbasis `local.properties` (t
    cd InosoftNewApps
    ```
 
-2. **Dapatkan API Key NewsAPI**:
-   Daftar secara gratis di [NewsAPI.org/register](https://newsapi.org/register) untuk mendapatkan API Key pengembang.
+2. **Daftar Development API Key**:
+   Daftar akun gratis di [NewsAPI.org/register](https://newsapi.org/register) untuk mendapatkan API Key pengembang.
 
-3. **Salin Template Konfigurasi**:
-   Salin file `local.properties.example` menjadi `local.properties` pada root project:
+3. **Buat File `local.properties` dari Template**:
+   Salin file template `local.properties.example` yang telah disediakan menjadi `local.properties` pada *root directory* project:
    ```bash
    cp local.properties.example local.properties
    ```
 
-4. **Isi API Key & SDK Path**:
-   Buka file `local.properties` yang baru dibuat dan sesuaikan nilainya:
+4. **Masukkan API Key & Lokasi SDK**:
+   Buka file `local.properties` dan isi dengan konfigurasi Anda:
    ```properties
-   ## Android SDK Directory (otomatis terisi jika dibuka di Android Studio)
+   ## Android SDK Directory (otomatis terisi saat membuka project di Android Studio)
    sdk.dir=/Users/username/Library/Android/sdk
 
-   ## NewsAPI.org API Key
+   ## NewsAPI.org API Key (wajib diisi agar dapat mengambil berita online)
    NEWS_API_KEY=masukkan_api_key_newsapi_anda_disini
 
    ## NewsAPI Base URL (Opsional, default: https://newsapi.org/v2)
@@ -168,7 +186,7 @@ Aplikasi menggunakan konfigurasi aman dan dinamis berbasis `local.properties` (t
    ```
 
 > [!TIP]
-> Anda juga dapat menggunakan *Environment Variable* `NEWS_API_KEY` pada sistem CI/CD Anda jika tidak menggunakan file `local.properties`.
+> Pada pipeline CI/CD atau terminal, Anda juga dapat menyediakan environment variable `export NEWS_API_KEY="your_api_key_here"` tanpa perlu membuat file `local.properties`. Gradle akan otomatis mendeteksi environment variable tersebut.
 
 ---
 
