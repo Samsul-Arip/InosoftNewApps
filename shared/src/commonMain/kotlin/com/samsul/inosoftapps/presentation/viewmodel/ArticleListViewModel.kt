@@ -24,6 +24,7 @@ data class ArticleListUiState(
     val articles: List<Article> = emptyList(),
     val isLoading: Boolean = false,
     val isRefreshing: Boolean = false,
+    val isOffline: Boolean = false,
     val selectedCategory: String? = null,
     val searchQuery: String = "",
     val errorMessage: String? = null
@@ -110,7 +111,20 @@ class ArticleListViewModel(
 
             val result = refreshArticlesUseCase(_uiState.value.selectedCategory)
 
+            result.onSuccess {
+                _uiState.update {
+                    it.copy(
+                        isOffline = false,
+                        isLoading = false,
+                        isRefreshing = false
+                    )
+                }
+            }
+
             result.onFailure { exception ->
+                val isNetworkIssue = exception is DomainException &&
+                        (exception.error is DomainError.NoInternet || exception.error is DomainError.Timeout)
+
                 val errorMsg = when (exception) {
                     is DomainException -> when (exception.error) {
                         is DomainError.NoInternet -> "Tidak ada koneksi internet. Menampilkan berita tersimpan."
@@ -122,10 +136,16 @@ class ArticleListViewModel(
                     }
                     else -> exception.message ?: "Gagal memuat berita terbaru."
                 }
-                _uiState.update { it.copy(errorMessage = errorMsg) }
-            }
 
-            _uiState.update { it.copy(isLoading = false, isRefreshing = false) }
+                _uiState.update {
+                    it.copy(
+                        isOffline = isNetworkIssue,
+                        errorMessage = errorMsg,
+                        isLoading = false,
+                        isRefreshing = false
+                    )
+                }
+            }
         }
     }
 

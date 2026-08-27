@@ -1,6 +1,10 @@
 package com.samsul.inosoftapps.presentation.screen
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -11,6 +15,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
@@ -19,6 +25,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -45,6 +52,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.samsul.inosoftapps.presentation.component.ArticleCard
@@ -80,6 +88,7 @@ fun ArticleListScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     var isSearchActive by remember { mutableStateOf(false) }
 
+    // Non-blocking Snackbar alert for error notifications
     LaunchedEffect(uiState.errorMessage) {
         uiState.errorMessage?.let { msg ->
             snackbarHostState.showSnackbar(
@@ -142,7 +151,7 @@ fun ArticleListContent(
                         OutlinedTextField(
                             value = uiState.searchQuery,
                             onValueChange = onSearchQueryChanged,
-                            placeholder = { Text("Cari berita...") },
+                            placeholder = { Text("Cari berita dari cache...") },
                             singleLine = true,
                             trailingIcon = {
                                 if (uiState.searchQuery.isNotEmpty()) {
@@ -192,13 +201,46 @@ fun ArticleListContent(
                 .padding(paddingValues)
                 .background(MaterialTheme.colorScheme.background)
         ) {
+            // Mode Offline Banner (Animated when offline with cached data)
+            AnimatedVisibility(
+                visible = uiState.isOffline && uiState.articles.isNotEmpty(),
+                enter = expandVertically() + fadeIn(),
+                exit = shrinkVertically() + fadeOut()
+            ) {
+                Surface(
+                    color = MaterialTheme.colorScheme.tertiaryContainer,
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 6.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Info,
+                            contentDescription = "Mode Offline",
+                            tint = MaterialTheme.colorScheme.onTertiaryContainer,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Mode Offline — Menampilkan berita yang tersimpan",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onTertiaryContainer
+                        )
+                    }
+                }
+            }
+
             // Category Chips Row (Shown when not searching)
             AnimatedVisibility(visible = !isSearchActive) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .horizontalScroll(rememberScrollState())
-                        .padding(horizontal = 16.dp, vertical = 6.dp),
+                        .padding(horizontal = 16.dp, vertical = 4.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     CATEGORIES.forEach { (catKey, catLabel) ->
@@ -216,7 +258,7 @@ fun ArticleListContent(
                 }
             }
 
-            // Main Content Area with PullToRefresh
+            // Main Content Area with Material 3 PullToRefreshBox
             PullToRefreshBox(
                 isRefreshing = uiState.isRefreshing,
                 onRefresh = onRefresh,
@@ -279,6 +321,7 @@ private fun ArticleListContentPreview_Light() {
                     articles = SampleData.sampleArticles,
                     isLoading = false,
                     isRefreshing = false,
+                    isOffline = true,
                     selectedCategory = "technology"
                 ),
                 isSearchActive = false,
@@ -303,6 +346,7 @@ private fun ArticleListContentPreview_Dark() {
                     articles = SampleData.sampleArticles,
                     isLoading = false,
                     isRefreshing = false,
+                    isOffline = true,
                     selectedCategory = "technology"
                 ),
                 isSearchActive = false,

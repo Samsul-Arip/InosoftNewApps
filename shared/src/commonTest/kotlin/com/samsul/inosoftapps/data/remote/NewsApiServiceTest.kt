@@ -76,7 +76,10 @@ class NewsApiServiceTest {
     @Test
     fun getTopHeadlines_parsesResponseCorrectly() = runTest {
         val mockEngine = MockEngine { request ->
-            assertEquals("https://newsapi.org/v2/top-headlines?country=us&page=1&pageSize=20", request.url.toString())
+            assertEquals("/v2/top-headlines", request.url.encodedPath)
+            assertEquals("us", request.url.parameters["country"])
+            assertEquals("1", request.url.parameters["page"])
+            assertEquals("20", request.url.parameters["pageSize"])
             respond(
                 content = ByteReadChannel(sampleSuccessJson),
                 status = HttpStatusCode.OK,

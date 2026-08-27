@@ -6,8 +6,6 @@ plugins {
     alias(libs.plugins.composeCompiler)
 }
 
-
-
 kotlin {
     compilerOptions {
         jvmTarget = JvmTarget.JVM_11
@@ -25,6 +23,12 @@ dependencies {
 
     implementation(libs.compose.uiToolingPreview)
     debugImplementation(libs.compose.uiTooling)
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
+
+    // Android Instrumentation & Compose UI Tests
+    androidTestImplementation(libs.androidx.testExt.junit)
+    androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
 }
 
 android {
@@ -37,6 +41,8 @@ android {
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
         versionName = "1.0"
+
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     packaging {
         resources {

@@ -167,4 +167,20 @@ class ArticleListViewModelTest {
         viewModel.clearError()
         assertNull(viewModel.uiState.value.errorMessage)
     }
+
+    @Test
+    fun refreshArticles_onNetworkErrorWithCachedArticles_setsIsOfflineTrue() = runTest(testDispatcher) {
+        fakeRepo.articlesFlow.value = listOf(sampleArticle)
+        fakeRepo.shouldFailRefresh = true
+
+        val viewModel = ArticleListViewModel(
+            getArticlesUseCase,
+            refreshArticlesUseCase,
+            searchArticlesUseCase
+        )
+        advanceUntilIdle()
+
+        assertTrue(viewModel.uiState.value.isOffline)
+        assertEquals(1, viewModel.uiState.value.articles.size)
+    }
 }
