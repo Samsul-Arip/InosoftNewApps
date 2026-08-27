@@ -19,6 +19,7 @@ Aplikasi ini menerapkan **Clean Architecture**, prinsip **Offline-First Single S
 - [Arsitektur & Alur Data](#-arsitektur--alur-data)
   - [Clean Architecture Overview](#clean-architecture-overview)
   - [Offline-First Single Source of Truth (SSOT)](#offline-first-single-source-of-truth-ssot)
+  - [Smart Fallback Handling (Resilience)](#smart-fallback-handling-resilience)
 - [Fitur Aplikasi](#-fitur-aplikasi)
 - [Prasyarat Lingkungan (Prerequisites)](#-prasyarat-lingkungan-prerequisites)
 - [Panduan Setup & Konfigurasi API Key](#-panduan-setup--konfigurasi-api-key)
@@ -101,6 +102,11 @@ graph TD
         KTOR -.->|4. Request| API[NewsAPI.org REST API]
     end
 ```
+
+---
+
+### Smart Fallback Handling (Resilience)
+NewsAPI.org pada paket gratis (*developer tier*) adakalanya mengembalikan 0 artikel (`totalResults: 0, articles: []`) untuk regional Indonesia (`country=id`). Untuk menjamin pengalaman pengguna yang andal dan mencegah tampilan kosong saat pengujian, `KtorNewsApiService` secara otomatis melakukan *fallback* cerdas mengambil berita global (`country=us`) apabila endpoint `id` mengembalikan data kosong atau error.
 
 ---
 

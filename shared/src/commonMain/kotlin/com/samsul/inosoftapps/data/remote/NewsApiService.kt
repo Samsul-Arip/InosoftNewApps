@@ -57,7 +57,23 @@ class KtorNewsApiService(
         pageSize: Int
     ): NewsResponseDto {
         val targetCountry = if (country.isNotBlank()) country else configProvider.defaultCountry
-        return fetchHeadlines(country = targetCountry, category = category, page = page, pageSize = pageSize)
+        val primaryResponse = fetchHeadlines(country = targetCountry, category = category, page = page, pageSize = pageSize)
+
+        // Smart Fallback: If country returns empty articles or error (e.g. NewsAPI 'id' returning 0 articles),
+        // automatically fallback to global/US headlines so the user always receives fresh news.
+        if (targetCountry != configProvider.fallbackCountry && (primaryResponse.articles.isNullOrEmpty() || primaryResponse.status != "ok")) {
+            val fallbackResponse = fetchHeadlines(
+                country = configProvider.fallbackCountry,
+                category = category,
+                page = page,
+                pageSize = pageSize
+            )
+            if (!fallbackResponse.articles.isNullOrEmpty()) {
+                return fallbackResponse
+            }
+        }
+
+        return primaryResponse
     }
 
     private suspend fun fetchHeadlines(

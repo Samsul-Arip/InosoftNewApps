@@ -9,6 +9,7 @@ interface ApiConfigProvider {
     val baseUrl: String
     val apiKey: String
     val defaultCountry: String
+    val fallbackCountry: String
 }
 
 /**
@@ -17,5 +18,6 @@ interface ApiConfigProvider {
 class DefaultApiConfigProvider(
     override val baseUrl: String = BuildKonfig.BASE_URL,
     override val apiKey: String = BuildKonfig.API_KEY,
-    override val defaultCountry: String = BuildKonfig.DEFAULT_COUNTRY
+    override val defaultCountry: String = BuildKonfig.DEFAULT_COUNTRY,
+    override val fallbackCountry: String = "us"
 ) : ApiConfigProvider

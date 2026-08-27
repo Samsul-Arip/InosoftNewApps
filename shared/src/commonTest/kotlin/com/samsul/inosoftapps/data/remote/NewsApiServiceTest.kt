@@ -87,16 +87,23 @@ class NewsApiServiceTest {
     }
 
     @Test
-    fun getTopHeadlines_handlesEmptyResponseCorrectly() = runTest {
+    fun getTopHeadlines_triggersSmartFallbackWhenCountryReturnsEmpty() = runTest {
         var callCount = 0
         val mockEngine = MockEngine { request ->
             callCount++
-            assertEquals("id", request.url.parameters["country"])
-            respond(
-                content = ByteReadChannel(sampleEmptyJson),
-                status = HttpStatusCode.OK,
-                headers = headersOf(HttpHeaders.ContentType, "application/json")
-            )
+            if (request.url.parameters["country"] == "id") {
+                respond(
+                    content = ByteReadChannel(sampleEmptyJson),
+                    status = HttpStatusCode.OK,
+                    headers = headersOf(HttpHeaders.ContentType, "application/json")
+                )
+            } else {
+                respond(
+                    content = ByteReadChannel(sampleSuccessJson),
+                    status = HttpStatusCode.OK,
+                    headers = headersOf(HttpHeaders.ContentType, "application/json")
+                )
+            }
         }
 
         val httpClient = KtorClientFactory.createHttpClient(engine = mockEngine)
@@ -104,9 +111,9 @@ class NewsApiServiceTest {
 
         val response = apiService.getTopHeadlines(country = "id")
 
-        assertEquals(1, callCount)
-        assertEquals(0, response.articles?.size)
-        assertEquals(0, response.totalResults)
+        assertEquals(2, callCount) // 1st call to 'id', 2nd fallback call to 'us'
+        assertEquals(2, response.articles?.size)
+        assertEquals("KMP and Compose Multiplatform in 2026", response.articles?.first()?.title)
     }
 
     @Test
@@ -137,6 +144,7 @@ class NewsApiServiceTest {
             override val baseUrl: String = "https://custom-news.org/v2"
             override val apiKey: String = "custom_test_key_123"
             override val defaultCountry: String = "id"
+            override val fallbackCountry: String = "us"
         }
 
         val mockEngine = MockEngine { request ->
