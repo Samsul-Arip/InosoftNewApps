@@ -20,6 +20,7 @@ Aplikasi ini menerapkan **Clean Architecture**, prinsip **Offline-First Single S
   - [Clean Architecture Overview](#clean-architecture-overview)
   - [Offline-First Single Source of Truth (SSOT)](#offline-first-single-source-of-truth-ssot)
 - [Fitur Aplikasi](#-fitur-aplikasi)
+- [Prasyarat Lingkungan (Prerequisites)](#-prasyarat-lingkungan-prerequisites)
 - [Panduan Setup & Konfigurasi API Key](#-panduan-setup--konfigurasi-api-key)
 - [Cara Menjalankan Aplikasi & Pengujian](#-cara-menjalankan-aplikasi--pengujian)
   - [Menjalankan Aplikasi](#menjalankan-aplikasi)
@@ -124,58 +125,86 @@ graph TD
 
 ---
 
+## 💻 Prasyarat Lingkungan (Prerequisites)
+
+Sebelum menjalankan project, pastikan lingkungan pengembangan Anda telah memenuhi spesifikasi berikut:
+- **JDK**: Java Development Kit **JDK 17** atau **JDK 21** (direkomendasikan JDK 21).
+- **IDE**: **Android Studio Ladybug (2024.2+)** atau versi yang lebih baru dengan plugin **Kotlin Multiplatform Mobile**.
+- **Android SDK**: Android SDK Platform API 35 dengan Minimum SDK API 24 (Android 7.0 Nougat).
+- **iOS (Opsional)**: macOS dengan **Xcode 15 / 16** dan CocoaPods jika ingin menjalankan simulasi iOS.
+
+---
+
 ## 🔑 Panduan Setup & Konfigurasi API Key
 
-1. **Dapatkan API Key**:
-   Daftar secara gratis di [NewsAPI.org](https://newsapi.org) untuk mendapatkan API Key.
+Aplikasi menggunakan konfigurasi aman dan dinamis berbasis `local.properties` (terproteksi di `.gitignore`) yang akan di-generate otomatis saat proses build ke dalam `BuildKonfig` & `ApiConfigProvider`:
 
-2. **Salin File Konfigurasi**:
-   Salin file `local.properties.example` menjadi `local.properties` pada *root* project:
+1. **Clone Repositori**:
+   ```bash
+   git clone https://github.com/Samsul-Arip/InosoftNewApps.git
+   cd InosoftNewApps
+   ```
+
+2. **Dapatkan API Key NewsAPI**:
+   Daftar secara gratis di [NewsAPI.org/register](https://newsapi.org/register) untuk mendapatkan API Key pengembang.
+
+3. **Salin Template Konfigurasi**:
+   Salin file `local.properties.example` menjadi `local.properties` pada root project:
    ```bash
    cp local.properties.example local.properties
    ```
 
-3. **Isi API Key**:
-   Buka `local.properties` dan masukkan API Key Anda:
+4. **Isi API Key & SDK Path**:
+   Buka file `local.properties` yang baru dibuat dan sesuaikan nilainya:
    ```properties
+   ## Android SDK Directory (otomatis terisi jika dibuka di Android Studio)
    sdk.dir=/Users/username/Library/Android/sdk
+
+   ## NewsAPI.org API Key
    NEWS_API_KEY=masukkan_api_key_newsapi_anda_disini
+
+   ## NewsAPI Base URL (Opsional, default: https://newsapi.org/v2)
+   NEWS_BASE_URL=https://newsapi.org/v2
    ```
 
-> [!NOTE]
-> Jika `local.properties` tidak diisi, aplikasi telah dilengkapi dengan default key fallback pada `NewsConfig.kt` untuk keperluan pengujian dan evaluasi langsung.
+> [!TIP]
+> Anda juga dapat menggunakan *Environment Variable* `NEWS_API_KEY` pada sistem CI/CD Anda jika tidak menggunakan file `local.properties`.
 
 ---
 
 ## 🚀 Cara Menjalankan Aplikasi & Pengujian
 
-### Menjalankan Aplikasi
+### 1. Menjalankan Aplikasi
 
-#### 1. Android
-Jalankan perintah berikut untuk meng-compile dan meng-install aplikasi Android:
+#### A. Menggunakan Android Studio (Direkomendasikan)
+1. Buka folder project di **Android Studio**.
+2. Tunggu proses **Gradle Sync** selesai.
+3. Pilih konfigurasi run **`androidApp`** pada toolbar atas.
+4. Pilih target perangkat fisik / emulator Android (API 24+) dan klik tombol **Run ▶**.
+
+#### B. Menggunakan Terminal / Command Line
 ```bash
-# Build APK Debug
+# Compile dan Build Debug APK
 ./gradlew :androidApp:assembleDebug
 
-# Install dan jalankan ke perangkat / emulator Android yang terhubung
+# Install dan Jalankan ke Emulator/Device yang aktif
 ./gradlew :androidApp:installDebug
 ```
-*Atau buka project di **Android Studio** dan klik tombol **Run** pada modul `androidApp`.*
 
-#### 2. iOS
-Jalankan kompilasi shared framework untuk target iOS Simulator:
+#### C. Menjalankan Target iOS (Opsional)
 ```bash
+# Compile shared Kotlin framework untuk iOS Simulator
 ./gradlew :shared:compileKotlinIosSimulatorArm64
 ```
-*Untuk menjalankan UI iOS, buka direktori `iosApp` di **Xcode** atau gunakan **JetBrains Fleet**.*
+*Buka direktori `iosApp` di **Xcode** untuk menjalankan antarmuka di iOS Simulator.*
 
 ---
 
-### Menjalankan Unit Test & UI Test
+### 2. Menjalankan Unit Test & UI Test
 
-Aplikasi memiliki rangkaian **35 Unit Tests** (100% lulus) yang mencakup seluruh layer arsitektur:
+Aplikasi telah dilengkapi dengan pengujian komprehensif (Unit Test, Flow/Turbine Test, dan Compose UI Instrumentation Test):
 
-#### Menjalankan Seluruh Unit Test:
+#### Menjalankan Seluruh Unit Test (Common & Android):
 ```bash
 ./gradlew test :shared:testDebugUnitTest
 ```
