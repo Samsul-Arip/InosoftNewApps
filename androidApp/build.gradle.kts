@@ -1,10 +1,12 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.kotlinAndroid)
     alias(libs.plugins.composeCompiler)
 }
 
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 
 kotlin {
     compilerOptions {
