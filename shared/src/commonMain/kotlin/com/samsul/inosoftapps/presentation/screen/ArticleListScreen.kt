@@ -8,6 +8,7 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -28,6 +29,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -48,6 +50,7 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -63,17 +66,9 @@ import com.samsul.inosoftapps.presentation.theme.NewsReaderTheme
 import com.samsul.inosoftapps.presentation.util.SampleData
 import com.samsul.inosoftapps.presentation.viewmodel.ArticleListUiState
 import com.samsul.inosoftapps.presentation.viewmodel.ArticleListViewModel
+import com.samsul.inosoftapps.util.AppConstants
+import com.samsul.inosoftapps.util.AppStrings
 import org.jetbrains.compose.ui.tooling.preview.Preview
-
-private val CATEGORIES = listOf(
-    null to "Semua",
-    "business" to "Bisnis",
-    "technology" to "Teknologi",
-    "sports" to "Olahraga",
-    "health" to "Kesehatan",
-    "science" to "Sains",
-    "entertainment" to "Hiburan"
-)
 
 /**
  * Stateful ArticleListScreen observing ViewModel state.
@@ -113,6 +108,7 @@ fun ArticleListScreen(
         onClearSearch = { viewModel.searchArticles("") },
         onCategorySelected = { viewModel.selectCategory(it) },
         onRefresh = { viewModel.refreshArticles() },
+        onLoadMore = { viewModel.loadMoreArticles() },
         onArticleClick = onArticleClick,
         modifier = modifier
     )
@@ -131,6 +127,7 @@ fun ArticleListContent(
     onClearSearch: () -> Unit,
     onCategorySelected: (String?) -> Unit,
     onRefresh: () -> Unit,
+    onLoadMore: () -> Unit = {},
     onArticleClick: (String) -> Unit,
     modifier: Modifier = Modifier,
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
@@ -138,25 +135,58 @@ fun ArticleListContent(
 ) {
     var selectedFullImage by remember { mutableStateOf<String?>(null) }
 
+    // Scroll to top when category changes
+    LaunchedEffect(uiState.selectedCategory) {
+        listState.scrollToItem(0)
+    }
+
+    // Automatic infinite scroll detection when reaching bottom 3 items
+    val isNearBottom by remember(listState) {
+        derivedStateOf {
+            val totalItems = listState.layoutInfo.totalItemsCount
+            val lastVisibleIndex = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+            totalItems > 0 && lastVisibleIndex >= totalItems - 3
+        }
+    }
+
+    LaunchedEffect(
+        isNearBottom,
+        uiState.isLoading,
+        uiState.isRefreshing,
+        uiState.isLoadingMore,
+        uiState.canLoadMore,
+        uiState.searchQuery
+    ) {
+        if (isNearBottom &&
+            !uiState.isLoading &&
+            !uiState.isRefreshing &&
+            !uiState.isLoadingMore &&
+            uiState.canLoadMore &&
+            uiState.searchQuery.isBlank()
+        ) {
+            onLoadMore()
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
                     if (!isSearchActive) {
                         Text(
-                            text = "News Reader",
+                            text = AppStrings.APP_NAME,
                             style = MaterialTheme.typography.titleLarge
                         )
                     } else {
                         OutlinedTextField(
                             value = uiState.searchQuery,
                             onValueChange = onSearchQueryChanged,
-                            placeholder = { Text("Cari berita dari cache...") },
+                            placeholder = { Text(AppStrings.SEARCH_PLACEHOLDER) },
                             singleLine = true,
                             trailingIcon = {
                                 if (uiState.searchQuery.isNotEmpty()) {
                                     IconButton(onClick = onClearSearch) {
-                                        Icon(Icons.Default.Close, contentDescription = "Clear search")
+                                        Icon(Icons.Default.Close, contentDescription = AppStrings.CLEAR_SEARCH_DESC)
                                     }
                                 }
                             },
@@ -175,14 +205,14 @@ fun ArticleListContent(
                     IconButton(onClick = onSearchToggled) {
                         Icon(
                             imageVector = if (isSearchActive) Icons.Default.Close else Icons.Default.Search,
-                            contentDescription = if (isSearchActive) "Tutup pencarian" else "Cari berita"
+                            contentDescription = if (isSearchActive) AppStrings.CLOSE_SEARCH_DESC else AppStrings.SEARCH_BUTTON_DESC
                         )
                     }
                     if (!isSearchActive) {
                         IconButton(onClick = onRefresh) {
                             Icon(
                                 imageVector = Icons.Default.Refresh,
-                                contentDescription = "Muat ulang"
+                                contentDescription = AppStrings.REFRESH_BUTTON_DESC
                             )
                         }
                     }
@@ -220,13 +250,13 @@ fun ArticleListContent(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Info,
-                            contentDescription = "Mode Offline",
+                            contentDescription = AppStrings.OFFLINE_BANNER_DESC,
                             tint = MaterialTheme.colorScheme.onTertiaryContainer,
                             modifier = Modifier.size(18.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Mode Offline — Menampilkan berita yang tersimpan",
+                            text = AppStrings.OFFLINE_BANNER_TEXT,
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onTertiaryContainer
                         )
@@ -243,7 +273,7 @@ fun ArticleListContent(
                         .padding(horizontal = 16.dp, vertical = 4.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    CATEGORIES.forEach { (catKey, catLabel) ->
+                    AppConstants.CATEGORIES.forEach { (catKey, catLabel) ->
                         val isSelected = uiState.selectedCategory == catKey
                         FilterChip(
                             selected = isSelected,
@@ -265,21 +295,24 @@ fun ArticleListContent(
                 modifier = Modifier.fillMaxSize()
             ) {
                 when {
-                    uiState.isLoading && uiState.articles.isEmpty() -> {
+                    (uiState.isLoading || uiState.isRefreshing) && uiState.articles.isEmpty() -> {
                         LoadingView(message = "Memuat berita terbaru...")
                     }
-                    !uiState.isLoading && uiState.articles.isEmpty() -> {
+                    !uiState.isLoading && !uiState.isRefreshing && uiState.articles.isEmpty() -> {
                         EmptyView(
-                            title = if (uiState.searchQuery.isNotEmpty()) "Hasil tidak ditemukan" else "Tidak ada berita",
-                            message = if (uiState.searchQuery.isNotEmpty()) "Tidak ada berita dengan kata kunci '${uiState.searchQuery}'" else "Gagal mengambil data atau belum ada berita.",
+                            title = if (uiState.searchQuery.isNotEmpty()) AppStrings.EMPTY_DATA_ERROR else AppStrings.EMPTY_ARTICLE_TITLE,
+                            message = if (uiState.searchQuery.isNotEmpty()) "Tidak ada berita dengan kata kunci '${uiState.searchQuery}'" else AppStrings.EMPTY_ARTICLE_MESSAGE,
                             onRetry = onRefresh
                         )
                     }
                     else -> {
                         LazyColumn(
                             state = listState,
-                            modifier = Modifier.fillMaxSize()
+                            modifier = Modifier.fillMaxSize(),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
+                            item { Spacer(modifier = Modifier.height(4.dp)) }
+
                             items(
                                 items = uiState.articles,
                                 key = { it.id }
@@ -287,12 +320,31 @@ fun ArticleListContent(
                                 ArticleCard(
                                     article = article,
                                     onClick = { onArticleClick(article.id) },
-                                    onImageClick = { imgUrl -> selectedFullImage = imgUrl }
+                                    onImageClick = { imageUrl ->
+                                        selectedFullImage = imageUrl
+                                    }
                                 )
                             }
-                            item {
-                                Spacer(modifier = Modifier.height(16.dp))
+
+                            // Infinite scroll loading indicator at bottom of list
+                            if (uiState.isLoadingMore) {
+                                item(key = "pagination_loading_indicator") {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(16.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        CircularProgressIndicator(
+                                            modifier = Modifier.size(28.dp),
+                                            strokeWidth = 3.dp,
+                                            color = MaterialTheme.colorScheme.primary
+                                        )
+                                    }
+                                }
                             }
+
+                            item { Spacer(modifier = Modifier.height(16.dp)) }
                         }
                     }
                 }
@@ -300,7 +352,7 @@ fun ArticleListContent(
         }
     }
 
-    // Modal FullScreen Image Dialog
+    // FullScreen Image Dialog (Bonus Feature)
     selectedFullImage?.let { imageUrl ->
         FullScreenImageViewer(
             imageUrl = imageUrl,
@@ -313,7 +365,7 @@ fun ArticleListContent(
 
 @Preview
 @Composable
-private fun ArticleListContentPreview_Light() {
+private fun ArticleListPreview_Light() {
     NewsReaderTheme(darkTheme = false) {
         Surface(color = MaterialTheme.colorScheme.background) {
             ArticleListContent(
@@ -321,8 +373,8 @@ private fun ArticleListContentPreview_Light() {
                     articles = SampleData.sampleArticles,
                     isLoading = false,
                     isRefreshing = false,
-                    isOffline = true,
-                    selectedCategory = "technology"
+                    isOffline = false,
+                    selectedCategory = null
                 ),
                 isSearchActive = false,
                 onSearchToggled = {},
@@ -330,6 +382,7 @@ private fun ArticleListContentPreview_Light() {
                 onClearSearch = {},
                 onCategorySelected = {},
                 onRefresh = {},
+                onLoadMore = {},
                 onArticleClick = {}
             )
         }
@@ -338,7 +391,7 @@ private fun ArticleListContentPreview_Light() {
 
 @Preview
 @Composable
-private fun ArticleListContentPreview_Dark() {
+private fun ArticleListPreview_Dark_Offline() {
     NewsReaderTheme(darkTheme = true) {
         Surface(color = MaterialTheme.colorScheme.background) {
             ArticleListContent(
@@ -355,6 +408,32 @@ private fun ArticleListContentPreview_Dark() {
                 onClearSearch = {},
                 onCategorySelected = {},
                 onRefresh = {},
+                onLoadMore = {},
+                onArticleClick = {}
+            )
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun ArticleListPreview_EmptyState() {
+    NewsReaderTheme(darkTheme = false) {
+        Surface(color = MaterialTheme.colorScheme.background) {
+            ArticleListContent(
+                uiState = ArticleListUiState(
+                    articles = emptyList(),
+                    isLoading = false,
+                    isRefreshing = false,
+                    isOffline = false
+                ),
+                isSearchActive = false,
+                onSearchToggled = {},
+                onSearchQueryChanged = {},
+                onClearSearch = {},
+                onCategorySelected = {},
+                onRefresh = {},
+                onLoadMore = {},
                 onArticleClick = {}
             )
         }

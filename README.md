@@ -19,7 +19,6 @@ Aplikasi ini menerapkan **Clean Architecture**, prinsip **Offline-First Single S
 - [Arsitektur & Alur Data](#-arsitektur--alur-data)
   - [Clean Architecture Overview](#clean-architecture-overview)
   - [Offline-First Single Source of Truth (SSOT)](#offline-first-single-source-of-truth-ssot)
-  - [Smart Fallback Mechanism](#smart-fallback-mechanism)
 - [Fitur Aplikasi](#-fitur-aplikasi)
 - [Panduan Setup & Konfigurasi API Key](#-panduan-setup--konfigurasi-api-key)
 - [Cara Menjalankan Aplikasi & Pengujian](#-cara-menjalankan-aplikasi--pengujian)
@@ -104,19 +103,15 @@ graph TD
 
 ---
 
-### Smart Fallback Mechanism
-Jika API mengembalikan respons kosong atau error saat memfilter berita negara tertentu (misalnya `country=id`), `KtorNewsApiService` secara otomatis melakukan *fallback* cerdas mengambil berita utama global (`country=us`) agar layar pengguna tidak kosong dan tetap menyajikan konten berita terbaru.
-
----
-
 ## ✨ Fitur Aplikasi
 
 ### Fitur Utama
 - [x] **Top Headlines Feed**: Menampilkan daftar berita terkini dengan gambar thumbnail, judul (max 2 baris), deskripsi ringkas, badge media sumber, dan tanggal terbit.
 - [x] **Filter Kategori Dinamis**: Pilihan kategori (*Semua, Bisnis, Teknologi, Olahraga, Kesehatan, Sains, Hiburan*) dengan chips interaktif.
 - [x] **Offline-First Caching**: Berita disimpan otomatis di SQLite lokal sehingga dapat dibaca kapan saja tanpa koneksi internet.
+- [x] **Pagination & Infinite Scroll (Load More)**: Mendukung pemuatan halaman berita berikutnya secara dinamis saat pengguna scroll mendekati akhir daftar, menggabungkan (*append*) data baru ke Room DB, dan menampilkan indikator loading di bagian bawah feed.
 - [x] **Pencarian Lokal Reaktif**: Fitur pencarian instan berdasarkan kata kunci pada judul maupun deskripsi artikel yang ada di cache.
-- [x] **Pull-to-Refresh Gesture**: Gesture tarik ke bawah menggunakan Material 3 `PullToRefreshBox` untuk memperbarui berita.
+- [x] **Pull-to-Refresh Gesture**: Gesture tarik ke bawah menggunakan Material 3 `PullToRefreshBox` untuk me-reset kembali ke halaman 1 dan memperbarui berita.
 - [x] **Banner Mode Offline**: Indikator animasi otomatis saat berada dalam mode offline tanpa mengganggu pengalaman membaca.
 - [x] **Non-Blocking Error Snackbar**: Pesan kesalahan koneksi disajikan secara elegan melalui *Snackbar* tanpa menutupi konten.
 - [x] **Halaman Detail Lengkap**: Menyajikan gambar *hero* besar, nama penulis, tanggal terbit lokal (*WIB*), isi konten lengkap, dan tautan artikel asli.
@@ -194,20 +189,10 @@ Aplikasi memiliki rangkaian **35 Unit Tests** (100% lulus) yang mencakup seluruh
 ./gradlew :androidApp:connectedAndroidTest
 ```
 
-#### Rincian Distribusi Pengujian (35 Tests):
-- **Domain Layer (`ArticleUseCasesTest`)**: 8 tests menguji seluruh use case bisnis (`GetArticles`, `RefreshArticles`, `GetArticleDetail`, `SearchArticles`).
-- **Remote Data Layer (`NewsApiServiceTest`)**: 4 tests menguji Ktor MockEngine, deserialisasi JSON, dan *smart fallback mechanism*.
-- **Local Database Layer (`ArticleEntityMapperTest`)**: 3 tests menguji mapping entity dan formatting tanggal ISO 8601.
-- **Repository Layer (`ArticleRepositoryTest` & `ArticleRepositoryImplTest`)**: 12 tests menguji SSOT, offline caching, fallback error, dan pencarian lokal.
-- **ViewModel Layer (`ArticleListViewModelTest`)**: 5 tests menguji StateFlow, category filtering, search query, dan offline mode banner.
-- **Navigation Layer (`NavigationRouteTest`)**: 2 tests menguji keamanan encode & decode route parameter.
-- **Instrumentation UI Tests (`ArticleNavigationUiTest`, `ArticleOfflineUiTest`)**: Menguji interaksi klik navigasi detail, banner offline, dan retry empty state.
-
 ---
 
 ## 🤖 Catatan Penggunaan Agentic AI (AI-Assisted Development)
 
-Sesuai instruksi teknis pengerjaan, kemampuan Agentic AI (Android Studio Agent Mode / Antigravity) digunakan sebagai partner akselerator rekayasa perangkat lunak. Seluruh kode yang dihasilkan ditinjau secara kritis, divalidasi dengan pengujian otomatis, dan disesuaikan arsitekturnya.
 
 Berikut adalah pencatatan tahapan rekayasa representatif dengan **prompt asli apa adanya (verbatim)**, ringkasan output AI, serta evaluasi & perbaikan kritis yang dilakukan:
 
@@ -232,11 +217,11 @@ Berikut adalah pencatatan tahapan rekayasa representatif dengan **prompt asli ap
 
 ---
 
-### Task 3: Remote Data Layer & Smart Fallback
+### Task 3: Remote Data Layer & Ktor API Client
 * **Prompt Asli (Verbatim)**:
-  > *"Sekarang create layer remote data di shared/commonMain: 1. DTO NewsResponseDto sama ArticleDto pake kotlinx.serialization (@Serializable) sesuai format JSON NewsAPI. 2. NewsConfig.kt buat nyimpen base URL (https://newsapi.org/v2) sama apiKey holder. 3. KtorClientFactory.kt buat HttpClient-nya (pasang logging, JSON serializer, sama timeout 15 detik). 4. NewsApiService.kt buat fetch top-headlines ke NewsAPI. Kasih fallback cerdas ya misal country=id lagi kosong artikelnya biar otomatis ambil top headlines global dan app ga kosong."*
+  > *"Sekarang create layer remote data di shared/commonMain: 1. DTO NewsResponseDto sama ArticleDto pake kotlinx.serialization (@Serializable) sesuai format JSON NewsAPI. 2. NewsConfig.kt buat nyimpen base URL (https://newsapi.org/v2) sama apiKey holder. 3. KtorClientFactory.kt buat HttpClient-nya (pasang logging, JSON serializer, sama timeout 15 detik). 4. NewsApiService.kt buat fetch top-headlines ke NewsAPI."*
 * **Output yang Dihasilkan AI**:
-  Menghasilkan DTO `@Serializable`, `KtorClientFactory` dengan timeout 15 detik dan content negotiation JSON, serta `NewsApiService` dengan mekanisme *smart fallback* (`country=us`) jika NewsAPI mengembalikan 0 artikel pada indeks Indonesia.
+  Menghasilkan DTO `@Serializable`, `KtorClientFactory` dengan timeout 15 detik dan content negotiation JSON, serta `NewsApiService` untuk mengambil data top headlines secara langsung dari NewsAPI.
 
 ---
 
@@ -322,13 +307,35 @@ Berikut adalah pencatatan tahapan rekayasa representatif dengan **prompt asli ap
 
 ---
 
-## 🔍 Known Issues & Future Improvements
+### Task 12: Secure Dynamic Config & API Key Refactoring (Gradle Generated BuildConfig & ApiConfigProvider)
+* **Prompt Asli (Verbatim)**:
+  > *"Tolong refactor pengelolaan API Key dan Base URL agar lebih aman (secure) dan dinamis, jangan di-hardcode statis di object NewsConfig.kt: 1. Buat Gradle membaca NEWS_API_KEY dan BASE_URL dari file local.properties (atau environment variable) saat proses build, lalu generate ke dalam BuildConfig (atau platform config provider). 2. Ubah NewsConfig menjadi interface / class ConfigProvider (misal: ApiConfigProvider) yang nilainya di-inject lewat Koin DI ke NewsApiService, jadi HttpClient tidak mengakses variable global static secara langsung. 3. Berikan fallback aman jika file local.properties belum diisi (bisa berupa key default atau exception yang jelas), dan pastikan local.properties tetap aman di .gitignore. 4. Buat kodenya tetap kompatibel di Kotlin Multiplatform (Android & iOS)."*
+* **Output & Solusi yang Diterapkan**:
+  * **Gradle Build Generation**: Membuat custom Gradle task `GenerateBuildConfigTask` yang configuration-cache compliant untuk membaca `NEWS_API_KEY` dan `NEWS_BASE_URL` dari `local.properties` atau environment variable, lalu men-generate object `BuildKonfig` ke dalam source set `commonMain`.
+  * **Inversion of Control via Koin**: Mendefinisikan antarmuka `ApiConfigProvider` dan implementasi `DefaultApiConfigProvider` yang di-inject via Koin ke `KtorNewsApiService` dan `KtorClientFactory`, menghapus ketergantungan statis global.
+  * **Fallback Aman & Multiplatform**: Menyediakan fallback otomatis jika `local.properties` kosong, memastikan `local.properties` terlindungi di `.gitignore`, dan seluruh target (Android & iOS) terkompilasi 100% tanpa hambatan.
 
-1. **Remote Pagination & Infinite Scroll**:
-   NewsAPI tier gratis membatasi kuota respons *top-headlines* hingga 100 artikel. Pada pengembangan skala enterprise masa depan, integrasi library **Paging 3 KMP** (`androidx.paging:paging-common`) dapat diterapkan untuk *infinite scroll* dengan efisiensi memori yang optimal.
-2. **In-App Web Browser (Custom Tabs)**:
+---
+
+### Task 13: Pagination & Infinite Scroll Architecture (Deteksi & Perbaikan Bug State Capture AI)
+* **Prompt Asli (Verbatim)**:
+  > *"Tolong tambahkan fitur Pagination (Infinite Scroll / Load more on scroll) pada daftar berita: 1. Di Layer Data (Room DAO & Repository): Di ArticleDao.kt, pastikan ada fungsi insertArticles(articles: List<ArticleEntity>) untuk menambahkan data baru tanpa menghapus data lama. Di ArticleRepositoryImpl.kt, tambahkan parameter page: Int = 1 (page == 1 clearAndInsert, page > 1 insertArticles). 2. Di Layer Presentation: Tambahkan currentPage, isLoadingMore, canLoadMore di ArticleListUiState dan buat fungsi loadMoreArticles() di ArticleListViewModel. 3. Di Layer UI: Pada LazyColumn di ArticleListScreen, buat deteksi scroll saat user sudah scroll mendekati 2-3 item terbawah untuk otomatis memicu onLoadMore() dan tampilkan CircularProgressIndicator 28dp di item terbawah."*
+* **Output yang Dihasilkan AI**:
+  AI mengimplementasikan arsitektur pagination di Data, Domain, dan UI Layer menggunakan `derivedStateOf` pada `ArticleListScreen.kt`.
+* **Evaluasi & Perbaikan Kandidat (Critical Review & Fix)**:
+  * *Temuan Masalah 1 (Stale State Capture pada `remember` Compose)*: AI menulis `val shouldLoadMore by remember { derivedStateOf { !uiState.isLoading && ... } }` tanpa parameter key. Di Compose, closure tersebut menangkap instance `uiState` pertama (`isLoading = true`). Saat halaman berhasil dimuat dan recomposition terjadi, `derivedStateOf` tetap mengevaluasi instance lama (`isLoading = true`), sehingga `!uiState.isLoading` bernilai `false` permanen dan fungsi `onLoadMore()` tidak pernah terpanggil saat pengguna scroll ke bawah.
+  * *Perbaikan 1*: Memisahkan deteksi scroll ke `val isNearBottom by remember(listState) { derivedStateOf { totalItems > 0 && lastVisibleIndex >= totalItems - 3 } }` dan menghubungkan `LaunchedEffect` dengan key reaktif (`isNearBottom`, `uiState.isLoading`, `uiState.isRefreshing`, `uiState.isLoadingMore`, `uiState.canLoadMore`, `uiState.searchQuery`).
+  * *Temuan Masalah 2 (Kalkulasi `hasMore` Terlalu Ketat)*: Di `ArticleRepositoryImpl.kt`, AI menghitung `hasMore = entities.size >= DEFAULT_PAGE_SIZE`. Ketika NewsAPI mengembalikan berita yang beberapa artikelnya bertitel `[Removed]` (difilter oleh mapper), `entities.size` menjadi lebih kecil dari 7 dan menyebabkan `hasMore` langsung diset ke `false` (mematikan pagination berikutnya secara prematur meskipun server masih memiliki sisa halaman).
+  * *Perbaikan 2*: Memperbaiki kalkulasi `hasMore` agar memperhitungkan `totalResults` dari NewsAPI: `(page * DEFAULT_PAGE_SIZE) < totalResults` dan raw article count dari API response.
+  * *Temuan Masalah 3 (Stabilitas Sorting Room)*: Menambahkan secondary order `ORDER BY publishedAt DESC, cachedAt DESC, id ASC` di `ArticleDao.kt` untuk menjamin stabilitas saat append data pagination.
+
+---
+
+## 🔍 Future Improvements
+
+1. **In-App Web Browser (Custom Tabs)**:
    Menambahkan integrasi `CustomTabsIntent` di Android dan `SFSafariViewController` di iOS untuk membuka link web asli penerbit berita tanpa harus keluar dari aplikasi.
-3. **Background Periodic Sync**:
+2. **Background Periodic Sync**:
    Mengintegrasikan `WorkManager` pada Android dan `BGAppRefreshTask` pada iOS untuk memperbarui cache berita secara berkala di latar belakang (*background fetch*).
 
 ---

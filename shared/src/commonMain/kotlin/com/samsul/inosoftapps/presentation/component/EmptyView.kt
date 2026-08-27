@@ -24,6 +24,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.samsul.inosoftapps.presentation.theme.NewsReaderTheme
+import com.samsul.inosoftapps.util.AppStrings
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 /**
@@ -31,10 +32,10 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
  */
 @Composable
 fun EmptyView(
-    title: String = "Tidak ada berita",
-    message: String = "Coba muat ulang atau periksa kata kunci pencarian Anda.",
+    title: String = AppStrings.EMPTY_ARTICLE_TITLE,
+    message: String = AppStrings.EMPTY_ARTICLE_MESSAGE,
     icon: ImageVector = Icons.Default.Info,
-    buttonText: String = "Coba Lagi",
+    buttonText: String = AppStrings.RETRY_BUTTON,
     onRetry: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {

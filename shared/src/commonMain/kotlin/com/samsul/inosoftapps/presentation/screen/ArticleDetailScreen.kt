@@ -52,6 +52,7 @@ import com.samsul.inosoftapps.presentation.theme.NewsReaderTheme
 import com.samsul.inosoftapps.presentation.util.SampleData
 import com.samsul.inosoftapps.presentation.viewmodel.ArticleDetailUiState
 import com.samsul.inosoftapps.presentation.viewmodel.ArticleDetailViewModel
+import com.samsul.inosoftapps.util.AppStrings
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 /**
@@ -96,7 +97,7 @@ fun ArticleDetailContent(
             TopAppBar(
                 title = {
                     Text(
-                        text = "Detail Berita",
+                        text = AppStrings.ARTICLE_DETAIL_TITLE,
                         style = MaterialTheme.typography.titleLarge
                     )
                 },
@@ -104,7 +105,7 @@ fun ArticleDetailContent(
                     IconButton(onClick = onBackClick) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Kembali"
+                            contentDescription = AppStrings.BACK_BUTTON_DESC
                         )
                     }
                 },
@@ -127,8 +128,8 @@ fun ArticleDetailContent(
                 }
                 uiState.article == null -> {
                     EmptyView(
-                        title = "Berita tidak ditemukan",
-                        message = uiState.errorMessage ?: "Data artikel tidak tersedia.",
+                        title = AppStrings.ARTICLE_NOT_FOUND,
+                        message = uiState.errorMessage ?: AppStrings.DATA_NOT_FOUND_ERROR,
                         onRetry = onRetry
                     )
                 }

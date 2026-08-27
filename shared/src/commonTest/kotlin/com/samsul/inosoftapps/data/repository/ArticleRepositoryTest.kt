@@ -79,7 +79,7 @@ class ArticleRepositoryTest {
             )
         )
 
-        val result = repository.refreshArticles(category = "technology")
+        val result = repository.refreshArticles(category = "technology", page = 1)
         assertTrue(result.isSuccess)
 
         repository.getArticles("technology").test {
@@ -92,6 +92,35 @@ class ArticleRepositoryTest {
     }
 
     @Test
+    fun refreshArticles_pageGreaterThanOne_appendsDataToRoomCache() = runTest(testDispatcher) {
+        fakeDao.setInitialEntities(listOf(sampleEntity))
+
+        fakeApiService.fakeArticles = listOf(
+            ArticleDto(
+                source = SourceDto(id = "2", name = "Detik"),
+                author = "Andi",
+                title = "Kotlin 2.1 Released",
+                description = "New features in Kotlin 2.1.",
+                url = "https://detik.com/kotlin-21",
+                urlToImage = "https://picsum.photos/400",
+                publishedAt = "2026-08-27T14:00:00Z",
+                content = "Kotlin 2.1 content."
+            )
+        )
+
+        val result = repository.refreshArticles(category = "technology", page = 2)
+        assertTrue(result.isSuccess)
+
+        repository.getArticles("technology").test {
+            val articles = awaitItem()
+            assertEquals(2, articles.size)
+            assertTrue(articles.any { it.title == "Room KMP Offline-First Architecture" })
+            assertTrue(articles.any { it.title == "Kotlin 2.1 Released" })
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
     fun refreshArticles_onOfflineFailure_preservesLocalCacheAndReturnsNoInternetError() = runTest(testDispatcher) {
         // Prepare existing cache
         fakeDao.setInitialEntities(listOf(sampleEntity))
@@ -99,7 +128,7 @@ class ArticleRepositoryTest {
         // Simulate network failure
         fakeApiService.shouldThrowException = IOException("Network connection lost")
 
-        val result = repository.refreshArticles(category = "technology")
+        val result = repository.refreshArticles(category = "technology", page = 1)
         assertTrue(result.isFailure)
 
         val exception = result.exceptionOrNull() as? DomainException
@@ -119,12 +148,35 @@ class ArticleRepositoryTest {
     fun refreshArticles_onTimeoutFailure_returnsTimeoutError() = runTest(testDispatcher) {
         fakeApiService.shouldThrowException = SocketTimeoutException("Socket timed out")
 
-        val result = repository.refreshArticles(category = null)
+        val result = repository.refreshArticles(category = null, page = 1)
         assertTrue(result.isFailure)
 
         val exception = result.exceptionOrNull() as? DomainException
         assertNotNull(exception)
         assertTrue(exception.error is DomainError.Timeout)
+    }
+
+    @Test
+    fun refreshArticles_whenBothRemoteAndLocalAreUnavailable_returnsFailureAndEmptyArticles() = runTest(testDispatcher) {
+        // No local cache in Room
+        fakeDao.setInitialEntities(emptyList())
+
+        // Remote network failure
+        fakeApiService.shouldThrowException = IOException("No internet connection")
+
+        val result = repository.refreshArticles(page = 1)
+        assertTrue(result.isFailure)
+
+        val exception = result.exceptionOrNull() as? DomainException
+        assertNotNull(exception)
+        assertEquals(DomainError.NoInternet, exception.error)
+
+        // Room DB remains empty
+        repository.getArticles().test {
+            val emptyList = awaitItem()
+            assertTrue(emptyList.isEmpty())
+            cancelAndIgnoreRemainingEvents()
+        }
     }
 
     @Test

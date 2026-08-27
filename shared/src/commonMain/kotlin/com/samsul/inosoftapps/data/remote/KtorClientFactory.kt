@@ -1,5 +1,8 @@
 package com.samsul.inosoftapps.data.remote
 
+import com.samsul.inosoftapps.data.remote.config.ApiConfigProvider
+import com.samsul.inosoftapps.data.remote.config.DefaultApiConfigProvider
+import com.samsul.inosoftapps.util.AppConstants
 import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig
 import io.ktor.client.engine.HttpClientEngine
@@ -19,16 +22,14 @@ import kotlinx.serialization.json.Json
  */
 object KtorClientFactory {
 
-    private const val TIMEOUT_MILLIS = 15_000L
-
     /**
      * Builds a configured [HttpClient].
      * @param engine Optional [HttpClientEngine] (e.g. OkHttp, Darwin, or MockEngine for tests).
-     * @param apiKey The NewsAPI authorization key.
+     * @param configProvider Dynamic [ApiConfigProvider] supplying authorization and environment keys.
      */
     fun createHttpClient(
         engine: HttpClientEngine? = null,
-        apiKey: String = NewsConfig.apiKey
+        configProvider: ApiConfigProvider = DefaultApiConfigProvider()
     ): HttpClient {
         val config: HttpClientConfig<*>.() -> Unit = {
             // JSON Serialization
@@ -44,22 +45,23 @@ object KtorClientFactory {
                 )
             }
 
-            // HTTP Timeouts (15 seconds)
+            // HTTP Timeouts
             install(HttpTimeout) {
-                requestTimeoutMillis = TIMEOUT_MILLIS
-                connectTimeoutMillis = TIMEOUT_MILLIS
-                socketTimeoutMillis = TIMEOUT_MILLIS
+                requestTimeoutMillis = AppConstants.NETWORK_TIMEOUT_MILLIS
+                connectTimeoutMillis = AppConstants.NETWORK_TIMEOUT_MILLIS
+                socketTimeoutMillis = AppConstants.NETWORK_TIMEOUT_MILLIS
             }
 
             // Network Logging
             install(Logging) {
                 logger = Logger.DEFAULT
-                level = LogLevel.INFO
+                level = LogLevel.BODY
             }
 
             // Default Request Configuration (Headers & Base settings)
             defaultRequest {
-                if (apiKey.isNotBlank() && apiKey != "YOUR_NEWS_API_KEY_HERE") {
+                val apiKey = configProvider.apiKey
+                if (apiKey.isNotBlank()) {
                     header("X-Api-Key", apiKey)
                 }
             }

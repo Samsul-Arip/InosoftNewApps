@@ -5,11 +5,11 @@ import com.samsul.inosoftapps.data.mapper.toDomain
 import com.samsul.inosoftapps.data.mapper.toDomainList
 import com.samsul.inosoftapps.data.mapper.toEntityList
 import com.samsul.inosoftapps.data.remote.NewsApiService
-import com.samsul.inosoftapps.data.remote.NewsConfig
 import com.samsul.inosoftapps.domain.model.Article
 import com.samsul.inosoftapps.domain.model.DomainError
 import com.samsul.inosoftapps.domain.model.DomainException
 import com.samsul.inosoftapps.domain.repository.ArticleRepository
+import com.samsul.inosoftapps.util.AppConstants
 import io.ktor.client.network.sockets.SocketTimeoutException
 import io.ktor.client.plugins.HttpRequestTimeoutException
 import io.ktor.client.plugins.ResponseException
@@ -25,9 +25,9 @@ import kotlinx.datetime.Clock
 import kotlinx.io.IOException
 
 /**
- * Concrete implementation of [ArticleRepository] providing Offline-First data flow.
+ * Concrete implementation of [ArticleRepository] providing Offline-First data flow with Pagination.
  * UI observes the Room database as the Single Source of Truth (SSOT).
- * Remote refresh writes into Room DB so UI updates automatically.
+ * Remote refresh page 1 clears and syncs cache; subsequent pages append to Room DB.
  * When network fails, existing Room DB cache is preserved and a typed [DomainError] is returned.
  */
 class ArticleRepositoryImpl(
@@ -42,21 +42,35 @@ class ArticleRepositoryImpl(
             .flowOn(ioDispatcher)
     }
 
-    override suspend fun refreshArticles(category: String?): Result<Unit> = withContext(ioDispatcher) {
+    override suspend fun refreshArticles(category: String?, page: Int): Result<Boolean> = withContext(ioDispatcher) {
         try {
             val response = newsApiService.getTopHeadlines(
-                country = NewsConfig.DEFAULT_COUNTRY,
-                category = category
+                category = category,
+                page = page,
+                pageSize = AppConstants.DEFAULT_PAGE_SIZE
             )
 
             if (response.status == "ok") {
                 val currentTime = Clock.System.now().toEpochMilliseconds()
-                val entities = response.articles.toEntityList(category = category, cachedAt = currentTime)
-                
-                if (entities.isNotEmpty()) {
-                    articleDao.clearAndInsert(entities, category)
+                val rawArticles = response.articles.orEmpty()
+                val entities = rawArticles.toEntityList(category = category, cachedAt = currentTime)
+                val totalResults = response.totalResults ?: 0
+                val hasMore = if (totalResults > 0) {
+                    (page * AppConstants.DEFAULT_PAGE_SIZE) < totalResults && rawArticles.isNotEmpty()
+                } else {
+                    rawArticles.size >= AppConstants.DEFAULT_PAGE_SIZE
                 }
-                Result.success(Unit)
+
+                if (page == 1) {
+                    if (entities.isNotEmpty()) {
+                        articleDao.clearAndInsert(entities, category)
+                    }
+                } else {
+                    if (entities.isNotEmpty()) {
+                        articleDao.insertArticles(entities)
+                    }
+                }
+                Result.success(hasMore)
             } else {
                 val serverError = DomainError.ServerError(
                     code = null,

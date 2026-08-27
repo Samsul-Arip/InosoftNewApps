@@ -8,6 +8,7 @@ import com.samsul.inosoftapps.domain.model.DomainException
 import com.samsul.inosoftapps.domain.usecase.GetArticlesUseCase
 import com.samsul.inosoftapps.domain.usecase.RefreshArticlesUseCase
 import com.samsul.inosoftapps.domain.usecase.SearchArticlesUseCase
+import com.samsul.inosoftapps.util.AppStrings
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,20 +19,23 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 /**
- * UI State for the Article List Screen.
+ * UI State for the Article List Screen with pagination support.
  */
 data class ArticleListUiState(
     val articles: List<Article> = emptyList(),
-    val isLoading: Boolean = false,
+    val isLoading: Boolean = true,
     val isRefreshing: Boolean = false,
     val isOffline: Boolean = false,
     val selectedCategory: String? = null,
     val searchQuery: String = "",
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    val currentPage: Int = 1,
+    val isLoadingMore: Boolean = false,
+    val canLoadMore: Boolean = true
 )
 
 /**
- * ViewModel managing the article feed, categories, search, and refresh actions.
+ * ViewModel managing the article feed, categories, search, refresh, and pagination (infinite scroll).
  */
 class ArticleListViewModel(
     private val getArticlesUseCase: GetArticlesUseCase,
@@ -54,9 +58,18 @@ class ArticleListViewModel(
      */
     fun selectCategory(category: String?) {
         if (_uiState.value.selectedCategory == category && _uiState.value.searchQuery.isEmpty()) return
-        _uiState.update { it.copy(selectedCategory = category, searchQuery = "") }
+        _uiState.update {
+            it.copy(
+                selectedCategory = category,
+                searchQuery = "",
+                articles = emptyList(),
+                isLoading = true,
+                currentPage = 1,
+                canLoadMore = true
+            )
+        }
         loadArticles(category)
-        refreshArticles()
+        refreshArticles(category)
     }
 
     /**
@@ -100,23 +113,25 @@ class ArticleListViewModel(
     }
 
     /**
-     * Triggers a remote refresh from Ktor NewsAPI into Room DB.
+     * Triggers a remote refresh from Ktor NewsAPI into Room DB for page 1.
      */
-    fun refreshArticles(isInitial: Boolean = false) {
+    fun refreshArticles(category: String? = _uiState.value.selectedCategory, isInitial: Boolean = false) {
         viewModelScope.launch {
             _uiState.update {
-                if (isInitial && it.articles.isEmpty()) it.copy(isLoading = true, errorMessage = null)
-                else it.copy(isRefreshing = true, errorMessage = null)
+                if (isInitial && it.articles.isEmpty()) it.copy(isLoading = true, errorMessage = null, currentPage = 1, canLoadMore = true)
+                else it.copy(isRefreshing = true, errorMessage = null, currentPage = 1, canLoadMore = true)
             }
 
-            val result = refreshArticlesUseCase(_uiState.value.selectedCategory)
+            val result = refreshArticlesUseCase(category = category, page = 1)
 
-            result.onSuccess {
+            result.onSuccess { hasMore ->
                 _uiState.update {
                     it.copy(
                         isOffline = false,
                         isLoading = false,
-                        isRefreshing = false
+                        isRefreshing = false,
+                        currentPage = 1,
+                        canLoadMore = hasMore
                     )
                 }
             }
@@ -125,17 +140,7 @@ class ArticleListViewModel(
                 val isNetworkIssue = exception is DomainException &&
                         (exception.error is DomainError.NoInternet || exception.error is DomainError.Timeout)
 
-                val errorMsg = when (exception) {
-                    is DomainException -> when (exception.error) {
-                        is DomainError.NoInternet -> "Tidak ada koneksi internet. Menampilkan berita tersimpan."
-                        is DomainError.Timeout -> "Koneksi time out. Coba beberapa saat lagi."
-                        is DomainError.ServerError -> exception.error.message ?: "Terjadi kesalahan pada server."
-                        is DomainError.EmptyData -> "Tidak ada berita ditemukan."
-                        is DomainError.NotFound -> "Data tidak ditemukan."
-                        is DomainError.Unknown -> exception.error.message ?: "Terjadi kesalahan."
-                    }
-                    else -> exception.message ?: "Gagal memuat berita terbaru."
-                }
+                val errorMsg = mapExceptionToMessage(exception)
 
                 _uiState.update {
                     it.copy(
@@ -146,6 +151,57 @@ class ArticleListViewModel(
                     )
                 }
             }
+        }
+    }
+
+    /**
+     * Fetches the next page of articles and appends them to Room DB without triggering full-screen loading.
+     */
+    fun loadMoreArticles() {
+        val currentState = _uiState.value
+        if (currentState.isLoading || currentState.isRefreshing || currentState.isLoadingMore || !currentState.canLoadMore || currentState.searchQuery.isNotBlank()) {
+            return
+        }
+
+        val nextPage = currentState.currentPage + 1
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoadingMore = true) }
+
+            val result = refreshArticlesUseCase(category = currentState.selectedCategory, page = nextPage)
+
+            result.onSuccess { hasMore ->
+                _uiState.update {
+                    it.copy(
+                        isLoadingMore = false,
+                        currentPage = nextPage,
+                        canLoadMore = hasMore
+                    )
+                }
+            }
+
+            result.onFailure { exception ->
+                val errorMsg = mapExceptionToMessage(exception)
+                _uiState.update {
+                    it.copy(
+                        isLoadingMore = false,
+                        errorMessage = errorMsg
+                    )
+                }
+            }
+        }
+    }
+
+    private fun mapExceptionToMessage(exception: Throwable): String {
+        return when (exception) {
+            is DomainException -> when (exception.error) {
+                is DomainError.NoInternet -> AppStrings.NO_INTERNET_MESSAGE
+                is DomainError.Timeout -> AppStrings.TIMEOUT_MESSAGE
+                is DomainError.ServerError -> exception.error.message ?: AppStrings.SERVER_ERROR_DEFAULT
+                is DomainError.EmptyData -> AppStrings.EMPTY_DATA_ERROR
+                is DomainError.NotFound -> AppStrings.DATA_NOT_FOUND_ERROR
+                is DomainError.Unknown -> exception.error.message ?: AppStrings.UNKNOWN_ERROR
+            }
+            else -> exception.message ?: AppStrings.LOAD_FAILED_MESSAGE
         }
     }
 

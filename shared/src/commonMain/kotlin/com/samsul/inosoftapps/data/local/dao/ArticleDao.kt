@@ -22,7 +22,7 @@ interface ArticleDao {
         """
         SELECT * FROM articles 
         WHERE (:category IS NULL OR category = :category) 
-        ORDER BY publishedAt DESC
+        ORDER BY publishedAt DESC, cachedAt DESC, id ASC
         """
     )
     fun getArticles(category: String? = null): Flow<List<ArticleEntity>>

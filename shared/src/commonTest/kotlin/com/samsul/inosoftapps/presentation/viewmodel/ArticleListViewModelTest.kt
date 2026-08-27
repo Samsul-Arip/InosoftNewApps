@@ -21,6 +21,7 @@ import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
@@ -28,6 +29,8 @@ import kotlin.test.assertTrue
 class FakeRepo : ArticleRepository {
     val articlesFlow = MutableStateFlow<List<Article>>(emptyList())
     var shouldFailRefresh = false
+    var hasMorePages = true
+    var lastRequestedPage = 1
 
     override fun getArticles(category: String?): Flow<List<Article>> {
         return articlesFlow.map { list ->
@@ -35,11 +38,12 @@ class FakeRepo : ArticleRepository {
         }
     }
 
-    override suspend fun refreshArticles(category: String?): Result<Unit> {
+    override suspend fun refreshArticles(category: String?, page: Int): Result<Boolean> {
+        lastRequestedPage = page
         return if (shouldFailRefresh) {
             Result.failure(DomainException(DomainError.NoInternet))
         } else {
-            Result.success(Unit)
+            Result.success(hasMorePages)
         }
     }
 
@@ -182,5 +186,86 @@ class ArticleListViewModelTest {
 
         assertTrue(viewModel.uiState.value.isOffline)
         assertEquals(1, viewModel.uiState.value.articles.size)
+    }
+
+    @Test
+    fun loadMoreArticles_incrementsPageAndUpdatesPaginationState() = runTest(testDispatcher) {
+        val viewModel = ArticleListViewModel(
+            getArticlesUseCase,
+            refreshArticlesUseCase,
+            searchArticlesUseCase
+        )
+        advanceUntilIdle()
+
+        assertEquals(1, viewModel.uiState.value.currentPage)
+        assertTrue(viewModel.uiState.value.canLoadMore)
+
+        viewModel.loadMoreArticles()
+        advanceUntilIdle()
+
+        assertEquals(2, viewModel.uiState.value.currentPage)
+        assertEquals(2, fakeRepo.lastRequestedPage)
+        assertFalse(viewModel.uiState.value.isLoadingMore)
+    }
+
+    @Test
+    fun loadMoreArticles_whenCanLoadMoreIsFalse_doesNotTriggerRefresh() = runTest(testDispatcher) {
+        fakeRepo.hasMorePages = false
+
+        val viewModel = ArticleListViewModel(
+            getArticlesUseCase,
+            refreshArticlesUseCase,
+            searchArticlesUseCase
+        )
+        advanceUntilIdle()
+
+        assertFalse(viewModel.uiState.value.canLoadMore)
+
+        // Attempt to load more
+        viewModel.loadMoreArticles()
+        advanceUntilIdle()
+
+        // Page should still be 1 because canLoadMore was false
+        assertEquals(1, viewModel.uiState.value.currentPage)
+        assertEquals(1, fakeRepo.lastRequestedPage)
+    }
+
+    @Test
+    fun loadMoreArticles_whenSearchActive_doesNotTriggerPagination() = runTest(testDispatcher) {
+        val viewModel = ArticleListViewModel(
+            getArticlesUseCase,
+            refreshArticlesUseCase,
+            searchArticlesUseCase
+        )
+        advanceUntilIdle()
+
+        viewModel.searchArticles("Kotlin")
+        advanceUntilIdle()
+
+        viewModel.loadMoreArticles()
+        advanceUntilIdle()
+
+        assertEquals(1, viewModel.uiState.value.currentPage)
+        assertEquals(1, fakeRepo.lastRequestedPage)
+    }
+
+    @Test
+    fun selectCategory_resetsPaginationToPageOne() = runTest(testDispatcher) {
+        val viewModel = ArticleListViewModel(
+            getArticlesUseCase,
+            refreshArticlesUseCase,
+            searchArticlesUseCase
+        )
+        advanceUntilIdle()
+
+        viewModel.loadMoreArticles()
+        advanceUntilIdle()
+        assertEquals(2, viewModel.uiState.value.currentPage)
+
+        viewModel.selectCategory("technology")
+        advanceUntilIdle()
+
+        assertEquals(1, viewModel.uiState.value.currentPage)
+        assertTrue(viewModel.uiState.value.canLoadMore)
     }
 }

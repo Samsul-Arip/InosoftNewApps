@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.samsul.inosoftapps.domain.model.Article
 import com.samsul.inosoftapps.domain.usecase.GetArticleDetailUseCase
+import com.samsul.inosoftapps.util.AppStrings
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -46,7 +47,7 @@ class ArticleDetailViewModel(
                         it.copy(
                             article = article,
                             isLoading = false,
-                            errorMessage = if (article == null) "Berita tidak ditemukan" else null
+                            errorMessage = if (article == null) AppStrings.ARTICLE_NOT_FOUND else null
                         )
                     }
                 }

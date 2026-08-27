@@ -2,6 +2,7 @@ package com.samsul.inosoftapps.data.local.database
 
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.samsul.inosoftapps.util.AppConstants
 import kotlinx.cinterop.ExperimentalForeignApi
 import platform.Foundation.NSDocumentDirectory
 import platform.Foundation.NSFileManager
@@ -19,7 +20,7 @@ actual fun getDatabaseBuilder(context: Any?): RoomDatabase.Builder<NewsDatabase>
         create = false,
         error = null
     )
-    val dbFilePath = requireNotNull(documentDirectory?.path) + "/news_reader.db"
+    val dbFilePath = requireNotNull(documentDirectory?.path) + "/" + AppConstants.DATABASE_NAME
     return Room.databaseBuilder<NewsDatabase>(
         name = dbFilePath
     )

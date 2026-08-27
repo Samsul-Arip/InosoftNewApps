@@ -1,7 +1,8 @@
 package com.samsul.inosoftapps.data.remote
 
-import com.samsul.inosoftapps.data.mapper.toDomain
 import com.samsul.inosoftapps.data.mapper.toDomainList
+import com.samsul.inosoftapps.data.remote.config.ApiConfigProvider
+import com.samsul.inosoftapps.util.AppConstants
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
 import io.ktor.http.HttpHeaders
@@ -11,8 +12,6 @@ import io.ktor.utils.io.ByteReadChannel
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class NewsApiServiceTest {
@@ -54,32 +53,13 @@ class NewsApiServiceTest {
         }
     """.trimIndent()
 
-    private val sampleFallbackJson = """
-        {
-          "status": "ok",
-          "totalResults": 1,
-          "articles": [
-            {
-              "source": { "id": "bbc-news", "name": "BBC News" },
-              "author": "BBC Tech",
-              "title": "Global Innovation Wave",
-              "description": "Tech innovations happening across the world.",
-              "url": "https://bbc.com/news/global-tech",
-              "urlToImage": "https://bbc.com/image.jpg",
-              "publishedAt": "2026-08-27T09:00:00Z",
-              "content": "BBC content."
-            }
-          ]
-        }
-    """.trimIndent()
-
     @Test
     fun getTopHeadlines_parsesResponseCorrectly() = runTest {
         val mockEngine = MockEngine { request ->
             assertEquals("/v2/top-headlines", request.url.encodedPath)
             assertEquals("us", request.url.parameters["country"])
             assertEquals("1", request.url.parameters["page"])
-            assertEquals("20", request.url.parameters["pageSize"])
+            assertEquals(AppConstants.DEFAULT_PAGE_SIZE.toString(), request.url.parameters["pageSize"])
             respond(
                 content = ByteReadChannel(sampleSuccessJson),
                 status = HttpStatusCode.OK,
@@ -107,23 +87,16 @@ class NewsApiServiceTest {
     }
 
     @Test
-    fun getTopHeadlines_triggersSmartFallbackWhenCountryReturnsEmpty() = runTest {
+    fun getTopHeadlines_handlesEmptyResponseCorrectly() = runTest {
         var callCount = 0
         val mockEngine = MockEngine { request ->
             callCount++
-            if (request.url.parameters["country"] == "id") {
-                respond(
-                    content = ByteReadChannel(sampleEmptyJson),
-                    status = HttpStatusCode.OK,
-                    headers = headersOf(HttpHeaders.ContentType, "application/json")
-                )
-            } else {
-                respond(
-                    content = ByteReadChannel(sampleFallbackJson),
-                    status = HttpStatusCode.OK,
-                    headers = headersOf(HttpHeaders.ContentType, "application/json")
-                )
-            }
+            assertEquals("id", request.url.parameters["country"])
+            respond(
+                content = ByteReadChannel(sampleEmptyJson),
+                status = HttpStatusCode.OK,
+                headers = headersOf(HttpHeaders.ContentType, "application/json")
+            )
         }
 
         val httpClient = KtorClientFactory.createHttpClient(engine = mockEngine)
@@ -131,9 +104,9 @@ class NewsApiServiceTest {
 
         val response = apiService.getTopHeadlines(country = "id")
 
-        assertEquals(2, callCount) // 1st call to 'id', 2nd fallback call to 'us'
-        assertEquals(1, response.articles?.size)
-        assertEquals("Global Innovation Wave", response.articles?.first()?.title)
+        assertEquals(1, callCount)
+        assertEquals(0, response.articles?.size)
+        assertEquals(0, response.totalResults)
     }
 
     @Test
@@ -155,32 +128,33 @@ class NewsApiServiceTest {
         val response = apiService.searchNews(query = "kotlin")
 
         assertEquals("ok", response.status)
-        assertEquals(2, response.articles?.size)
+        assertEquals(2, response.totalResults)
     }
 
     @Test
-    fun articleMapper_filtersOutInvalidOrRemovedArticles() {
-        val removedDto = com.samsul.inosoftapps.data.remote.dto.ArticleDto(
-            title = "[Removed]",
-            url = "https://example.com/removed"
-        )
-        assertNull(removedDto.toDomain())
+    fun ktorNewsApiService_usesInjectedConfigProviderDynamically() = runTest {
+        val customConfig = object : ApiConfigProvider {
+            override val baseUrl: String = "https://custom-news.org/v2"
+            override val apiKey: String = "custom_test_key_123"
+            override val defaultCountry: String = "id"
+        }
 
-        val blankUrlDto = com.samsul.inosoftapps.data.remote.dto.ArticleDto(
-            title = "Valid Title",
-            url = "   "
-        )
-        assertNull(blankUrlDto.toDomain())
+        val mockEngine = MockEngine { request ->
+            assertEquals("/v2/top-headlines", request.url.encodedPath)
+            assertEquals("custom-news.org", request.url.host)
+            assertEquals("id", request.url.parameters["country"])
+            assertEquals("custom_test_key_123", request.url.parameters["apiKey"])
+            respond(
+                content = ByteReadChannel(sampleSuccessJson),
+                status = HttpStatusCode.OK,
+                headers = headersOf(HttpHeaders.ContentType, "application/json")
+            )
+        }
 
-        val validDto = com.samsul.inosoftapps.data.remote.dto.ArticleDto(
-            title = "Valid Article",
-            url = "https://example.com/valid",
-            description = "Some description",
-            publishedAt = "2026-08-27T00:00:00Z"
-        )
-        val domain = validDto.toDomain("business")
-        assertNotNull(domain)
-        assertEquals("Valid Article", domain.title)
-        assertEquals("business", domain.category)
+        val httpClient = KtorClientFactory.createHttpClient(engine = mockEngine, configProvider = customConfig)
+        val apiService = KtorNewsApiService(client = httpClient, configProvider = customConfig)
+
+        val response = apiService.getTopHeadlines()
+        assertEquals("ok", response.status)
     }
 }

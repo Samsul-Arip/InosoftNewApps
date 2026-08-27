@@ -17,7 +17,6 @@ import com.samsul.inosoftapps.domain.usecase.RefreshArticlesUseCase
 import com.samsul.inosoftapps.domain.usecase.SearchArticlesUseCase
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
@@ -29,6 +28,7 @@ import kotlin.test.assertTrue
 class FakeArticleRepository : ArticleRepository {
     val articlesFlow = MutableStateFlow<List<Article>>(emptyList())
     var shouldFailRefresh = false
+    var hasMorePages = true
 
     override fun getArticles(category: String?): Flow<List<Article>> {
         return articlesFlow.map { list ->
@@ -36,11 +36,11 @@ class FakeArticleRepository : ArticleRepository {
         }
     }
 
-    override suspend fun refreshArticles(category: String?): Result<Unit> {
+    override suspend fun refreshArticles(category: String?, page: Int): Result<Boolean> {
         return if (shouldFailRefresh) {
             Result.failure(Exception("Network error"))
         } else {
-            Result.success(Unit)
+            Result.success(hasMorePages)
         }
     }
 
@@ -125,6 +125,7 @@ class ArticleUseCasesTest {
 
         val result = useCase()
         assertTrue(result.isSuccess)
+        assertTrue(result.getOrNull() == true)
     }
 
     @Test

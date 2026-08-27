@@ -11,7 +11,6 @@ import com.samsul.inosoftapps.data.remote.dto.SourceDto
 import com.samsul.inosoftapps.domain.model.DomainError
 import com.samsul.inosoftapps.domain.model.DomainException
 import io.ktor.client.network.sockets.SocketTimeoutException
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
@@ -24,9 +23,10 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-class FakeArticleDao : ArticleDao {
+class FakeArticleDaoImpl : ArticleDao {
     val db = MutableStateFlow<List<ArticleEntity>>(emptyList())
     var clearAndInsertCalled = false
+    var insertArticlesCalled = false
 
     override fun getArticles(category: String?): Flow<List<ArticleEntity>> {
         return db.map { list ->
@@ -48,7 +48,8 @@ class FakeArticleDao : ArticleDao {
     }
 
     override suspend fun insertArticles(articles: List<ArticleEntity>) {
-        db.value = articles
+        insertArticlesCalled = true
+        db.value = db.value + articles
     }
 
     override suspend fun updateBookmarkStatus(id: String, isBookmarked: Boolean) {
@@ -76,7 +77,7 @@ class FakeArticleDao : ArticleDao {
     }
 }
 
-class FakeNewsApiService : NewsApiService {
+class FakeNewsApiServiceImpl : NewsApiService {
     var shouldThrowNetworkError = false
     var shouldThrowTimeoutError = false
     var shouldReturnServerError = false
@@ -141,8 +142,8 @@ class ArticleRepositoryImplTest {
 
     @Test
     fun getArticles_readsFromDaoAsSingleSourceOfTruth() = runTest(testDispatcher) {
-        val fakeDao = FakeArticleDao()
-        val fakeApi = FakeNewsApiService()
+        val fakeDao = FakeArticleDaoImpl()
+        val fakeApi = FakeNewsApiServiceImpl()
         val repository = ArticleRepositoryImpl(fakeDao, fakeApi, testDispatcher)
 
         fakeDao.db.value = listOf(cachedEntity)
@@ -157,12 +158,12 @@ class ArticleRepositoryImplTest {
     }
 
     @Test
-    fun refreshArticles_fetchesRemoteAndUpdatesDao() = runTest(testDispatcher) {
-        val fakeDao = FakeArticleDao()
-        val fakeApi = FakeNewsApiService()
+    fun refreshArticles_page1_clearsAndInsertsDao() = runTest(testDispatcher) {
+        val fakeDao = FakeArticleDaoImpl()
+        val fakeApi = FakeNewsApiServiceImpl()
         val repository = ArticleRepositoryImpl(fakeDao, fakeApi, testDispatcher)
 
-        val result = repository.refreshArticles(category = "technology")
+        val result = repository.refreshArticles(category = "technology", page = 1)
 
         assertTrue(result.isSuccess)
         assertTrue(fakeDao.clearAndInsertCalled)
@@ -172,15 +173,71 @@ class ArticleRepositoryImplTest {
     }
 
     @Test
+    fun refreshArticles_pageGreaterThan1_appendsToDao() = runTest(testDispatcher) {
+        val fakeDao = FakeArticleDaoImpl()
+        val fakeApi = FakeNewsApiServiceImpl()
+        val repository = ArticleRepositoryImpl(fakeDao, fakeApi, testDispatcher)
+
+        fakeDao.db.value = listOf(cachedEntity)
+
+        val result = repository.refreshArticles(category = "general", page = 2)
+
+        assertTrue(result.isSuccess)
+        assertTrue(fakeDao.insertArticlesCalled)
+        assertEquals(2, fakeDao.db.value.size)
+    }
+
+    @Test
+    fun refreshArticles_pagination_calculatesHasMoreAccurately() = runTest(testDispatcher) {
+        val fakeDao = FakeArticleDaoImpl()
+        val fakeApi = FakeNewsApiServiceImpl()
+        val repository = ArticleRepositoryImpl(fakeDao, fakeApi, testDispatcher)
+
+        // Case 1: totalResults = 20, page 1 (pageSize 7) -> 1 * 7 < 20 -> hasMore = true
+        fakeApi.mockResponse = fakeApi.mockResponse.copy(
+            totalResults = 20,
+            articles = listOf(
+                ArticleDto(
+                    title = "Article 1",
+                    url = "https://example.com/1"
+                ),
+                ArticleDto(
+                    title = "[Removed]",
+                    url = "https://example.com/2"
+                )
+            )
+        )
+
+        val page1Result = repository.refreshArticles(page = 1)
+        assertTrue(page1Result.isSuccess)
+        assertEquals(true, page1Result.getOrNull())
+
+        // Case 2: totalResults = 10, page 2 (pageSize 7) -> 2 * 7 = 14 >= 10 -> hasMore = false
+        fakeApi.mockResponse = fakeApi.mockResponse.copy(
+            totalResults = 10,
+            articles = listOf(
+                ArticleDto(
+                    title = "Article 3",
+                    url = "https://example.com/3"
+                )
+            )
+        )
+
+        val page2Result = repository.refreshArticles(page = 2)
+        assertTrue(page2Result.isSuccess)
+        assertEquals(false, page2Result.getOrNull())
+    }
+
+    @Test
     fun refreshArticles_onNetworkError_doesNotClearCacheAndReturnsNoInternetError() = runTest(testDispatcher) {
-        val fakeDao = FakeArticleDao()
-        val fakeApi = FakeNewsApiService().apply { shouldThrowNetworkError = true }
+        val fakeDao = FakeArticleDaoImpl()
+        val fakeApi = FakeNewsApiServiceImpl().apply { shouldThrowNetworkError = true }
         val repository = ArticleRepositoryImpl(fakeDao, fakeApi, testDispatcher)
 
         // Pre-populate cache in Room DB
         fakeDao.db.value = listOf(cachedEntity)
 
-        val result = repository.refreshArticles()
+        val result = repository.refreshArticles(page = 1)
 
         // Result must be failure
         assertTrue(result.isFailure)
@@ -195,13 +252,13 @@ class ArticleRepositoryImplTest {
 
     @Test
     fun refreshArticles_onTimeoutError_doesNotClearCacheAndReturnsTimeoutError() = runTest(testDispatcher) {
-        val fakeDao = FakeArticleDao()
-        val fakeApi = FakeNewsApiService().apply { shouldThrowTimeoutError = true }
+        val fakeDao = FakeArticleDaoImpl()
+        val fakeApi = FakeNewsApiServiceImpl().apply { shouldThrowTimeoutError = true }
         val repository = ArticleRepositoryImpl(fakeDao, fakeApi, testDispatcher)
 
         fakeDao.db.value = listOf(cachedEntity)
 
-        val result = repository.refreshArticles()
+        val result = repository.refreshArticles(page = 1)
 
         assertTrue(result.isFailure)
         val exception = result.exceptionOrNull() as? DomainException
@@ -214,11 +271,11 @@ class ArticleRepositoryImplTest {
 
     @Test
     fun refreshArticles_onServerError_returnsServerError() = runTest(testDispatcher) {
-        val fakeDao = FakeArticleDao()
-        val fakeApi = FakeNewsApiService().apply { shouldReturnServerError = true }
+        val fakeDao = FakeArticleDaoImpl()
+        val fakeApi = FakeNewsApiServiceImpl().apply { shouldReturnServerError = true }
         val repository = ArticleRepositoryImpl(fakeDao, fakeApi, testDispatcher)
 
-        val result = repository.refreshArticles()
+        val result = repository.refreshArticles(page = 1)
 
         assertTrue(result.isFailure)
         val exception = result.exceptionOrNull() as? DomainException

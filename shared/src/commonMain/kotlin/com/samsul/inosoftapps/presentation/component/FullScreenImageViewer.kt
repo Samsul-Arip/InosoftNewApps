@@ -13,7 +13,6 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -27,6 +26,7 @@ import androidx.compose.ui.window.DialogProperties
 import coil3.compose.SubcomposeAsyncImage
 import com.samsul.inosoftapps.presentation.theme.NewsReaderTheme
 import com.samsul.inosoftapps.presentation.util.SampleData
+import com.samsul.inosoftapps.util.AppStrings
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 /**
@@ -77,7 +77,7 @@ fun FullScreenImageContent(
     ) {
         SubcomposeAsyncImage(
             model = imageUrl,
-            contentDescription = title ?: "Full screen article image",
+            contentDescription = title ?: AppStrings.FULLSCREEN_IMAGE_DESC,
             contentScale = ContentScale.Fit,
             modifier = Modifier
                 .fillMaxSize()
@@ -103,7 +103,7 @@ fun FullScreenImageContent(
             IconButton(onClick = onDismiss) {
                 Icon(
                     imageVector = Icons.Default.Close,
-                    contentDescription = "Close full image",
+                    contentDescription = AppStrings.CLOSE_BUTTON_DESC,
                     tint = Color.White
                 )
             }

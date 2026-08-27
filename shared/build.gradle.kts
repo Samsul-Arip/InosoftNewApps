@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -10,6 +11,62 @@ plugins {
     alias(libs.plugins.androidxRoom)
 }
 
+// Load dynamic secrets and environment configuration from local.properties or system env
+val localProperties = Properties().apply {
+    val localPropertiesFile = rootProject.file("local.properties")
+    if (localPropertiesFile.exists()) {
+        localPropertiesFile.inputStream().use { load(it) }
+    }
+}
+
+val newsApiKey: String = (localProperties.getProperty("NEWS_API_KEY")
+    ?: System.getenv("NEWS_API_KEY")
+    ?: "API_KEY_HERE").trim()
+
+val newsBaseUrl: String = (localProperties.getProperty("NEWS_BASE_URL")
+    ?: System.getenv("NEWS_BASE_URL")
+    ?: "https://newsapi.org/v2").trim()
+
+val generatedBuildConfigDir = layout.buildDirectory.dir("generated/source/buildConfig/commonMain/kotlin")
+
+abstract class GenerateBuildConfigTask : DefaultTask() {
+    @get:Input
+    abstract val apiKey: Property<String>
+
+    @get:Input
+    abstract val baseUrl: Property<String>
+
+    @get:OutputDirectory
+    abstract val outputDir: DirectoryProperty
+
+    @TaskAction
+    fun generate() {
+        val dir = outputDir.get().asFile
+        val targetFile = dir.resolve("com/samsul/inosoftapps/config/BuildKonfig.kt")
+        targetFile.parentFile.mkdirs()
+        targetFile.writeText(
+            """
+            package com.samsul.inosoftapps.config
+
+            /**
+             * Auto-generated build configuration constants from local.properties / environment variables.
+             * DO NOT EDIT DIRECTLY.
+             */
+            object BuildKonfig {
+                const val BASE_URL: String = "${baseUrl.get()}"
+                const val API_KEY: String = "${apiKey.get()}"
+                const val DEFAULT_COUNTRY: String = "id"
+            }
+            """.trimIndent()
+        )
+    }
+}
+
+val generateBuildConfigTask = tasks.register<GenerateBuildConfigTask>("generateBuildConfig") {
+    apiKey.set(newsApiKey)
+    baseUrl.set(newsBaseUrl)
+    outputDir.set(generatedBuildConfigDir)
+}
 
 room {
     schemaDirectory("$projectDir/schemas")
@@ -37,45 +94,49 @@ kotlin {
     }
     
     sourceSets {
-        commonMain.dependencies {
-            // Compose Multiplatform
-            implementation(libs.compose.runtime)
-            implementation(libs.compose.foundation)
-            implementation(libs.compose.material3)
-            implementation(libs.compose.ui)
-            implementation(libs.compose.components.resources)
-            implementation(libs.compose.uiToolingPreview)
+        commonMain {
+            kotlin.srcDir(generatedBuildConfigDir)
 
-            // Lifecycle & Navigation
-            implementation(libs.androidx.lifecycle.viewmodel)
-            implementation(libs.androidx.lifecycle.viewmodelCompose)
-            implementation(libs.androidx.lifecycle.runtimeCompose)
-            implementation(libs.androidx.navigation.compose)
+            dependencies {
+                // Compose Multiplatform
+                implementation(libs.compose.runtime)
+                implementation(libs.compose.foundation)
+                implementation(libs.compose.material3)
+                implementation(libs.compose.ui)
+                implementation(libs.compose.components.resources)
+                implementation(libs.compose.uiToolingPreview)
 
-            // Coroutines, Serialization & Datetime
-            implementation(libs.kotlinx.coroutines.core)
-            implementation(libs.kotlinx.serialization.json)
-            implementation(libs.kotlinx.datetime)
+                // Lifecycle & Navigation
+                implementation(libs.androidx.lifecycle.viewmodel)
+                implementation(libs.androidx.lifecycle.viewmodelCompose)
+                implementation(libs.androidx.lifecycle.runtimeCompose)
+                implementation(libs.androidx.navigation.compose)
 
-            // Ktor Client 3.x
-            implementation(libs.ktor.client.core)
-            implementation(libs.ktor.client.content.negotiation)
-            implementation(libs.ktor.serialization.kotlinx.json)
-            implementation(libs.ktor.client.logging)
+                // Coroutines, Serialization & Datetime
+                implementation(libs.kotlinx.coroutines.core)
+                implementation(libs.kotlinx.serialization.json)
+                implementation(libs.kotlinx.datetime)
 
-            // Room KMP 2.7.x
-            implementation(libs.androidx.room.runtime)
-            implementation(libs.androidx.sqlite.bundled)
+                // Ktor Client 3.x
+                implementation(libs.ktor.client.core)
+                implementation(libs.ktor.client.content.negotiation)
+                implementation(libs.ktor.serialization.kotlinx.json)
+                implementation(libs.ktor.client.logging)
 
-            // Koin DI
-            implementation(libs.koin.core)
-            implementation(libs.koin.compose)
-            implementation(libs.koin.compose.viewmodel)
-            implementation(libs.koin.compose.viewmodel.navigation)
+                // Room KMP 2.7.x
+                implementation(libs.androidx.room.runtime)
+                implementation(libs.androidx.sqlite.bundled)
 
-            // Coil 3 (Image Loader)
-            implementation(libs.coil.compose)
-            implementation(libs.coil.network.ktor3)
+                // Koin DI
+                implementation(libs.koin.core)
+                implementation(libs.koin.compose)
+                implementation(libs.koin.compose.viewmodel)
+                implementation(libs.koin.compose.viewmodel.navigation)
+
+                // Coil 3 (Image Loader)
+                implementation(libs.coil.compose)
+                implementation(libs.coil.network.ktor3)
+            }
         }
 
         androidMain.dependencies {
@@ -106,6 +167,15 @@ kotlin {
             implementation(libs.androidx.testExt.junit)
             implementation(libs.androidx.espresso.core)
         }
+    }
+}
+
+// Ensure generateBuildConfig runs before any compilation or KSP tasks
+tasks.matching {
+    it.name.startsWith("compile") || it.name.startsWith("ksp") || it.name.startsWith("generate")
+}.configureEach {
+    if (name != "generateBuildConfig") {
+        dependsOn(generateBuildConfigTask)
     }
 }
 

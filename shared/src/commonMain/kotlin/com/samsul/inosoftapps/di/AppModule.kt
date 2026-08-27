@@ -6,6 +6,8 @@ import com.samsul.inosoftapps.data.local.database.createNewsDatabase
 import com.samsul.inosoftapps.data.remote.KtorClientFactory
 import com.samsul.inosoftapps.data.remote.KtorNewsApiService
 import com.samsul.inosoftapps.data.remote.NewsApiService
+import com.samsul.inosoftapps.data.remote.config.ApiConfigProvider
+import com.samsul.inosoftapps.data.remote.config.DefaultApiConfigProvider
 import com.samsul.inosoftapps.data.repository.ArticleRepositoryImpl
 import com.samsul.inosoftapps.domain.repository.ArticleRepository
 import com.samsul.inosoftapps.domain.usecase.GetArticleDetailUseCase
@@ -22,11 +24,12 @@ import org.koin.dsl.KoinAppDeclaration
 import org.koin.dsl.module
 
 /**
- * Network module providing HttpClient and KtorNewsApiService instances.
+ * Network module providing ApiConfigProvider, HttpClient, and KtorNewsApiService instances.
  */
 val networkModule = module {
-    single<HttpClient> { KtorClientFactory.createHttpClient() }
-    single<NewsApiService> { KtorNewsApiService(get()) }
+    single<ApiConfigProvider> { DefaultApiConfigProvider() }
+    single<HttpClient> { KtorClientFactory.createHttpClient(configProvider = get()) }
+    single<NewsApiService> { KtorNewsApiService(client = get(), configProvider = get()) }
 }
 
 /**

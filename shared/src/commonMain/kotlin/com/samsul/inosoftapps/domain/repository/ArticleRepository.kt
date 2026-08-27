@@ -16,11 +16,12 @@ interface ArticleRepository {
     fun getArticles(category: String? = null): Flow<List<Article>>
 
     /**
-     * Fetches the latest articles from remote network API and caches them locally.
+     * Fetches articles from remote network API and caches them locally.
      * @param category Optional category filter.
-     * @return [Result.success] when sync succeeds, or [Result.failure] on error.
+     * @param page Page number for pagination (default 1).
+     * @return [Result.success] with Boolean indicating if more pages can be loaded, or [Result.failure] on error.
      */
-    suspend fun refreshArticles(category: String? = null): Result<Unit>
+    suspend fun refreshArticles(category: String? = null, page: Int = 1): Result<Boolean>
 
     /**
      * Observes a single article by its unique ID.

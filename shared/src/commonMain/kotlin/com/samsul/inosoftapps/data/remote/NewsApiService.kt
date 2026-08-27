@@ -1,6 +1,9 @@
 package com.samsul.inosoftapps.data.remote
 
+import com.samsul.inosoftapps.data.remote.config.ApiConfigProvider
+import com.samsul.inosoftapps.data.remote.config.DefaultApiConfigProvider
 import com.samsul.inosoftapps.data.remote.dto.NewsResponseDto
+import com.samsul.inosoftapps.util.AppConstants
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
@@ -11,39 +14,41 @@ import io.ktor.client.request.parameter
  */
 interface NewsApiService {
     /**
-     * Fetches top headlines with smart fallback support.
-     * @param country 2-letter ISO 3166-1 code (e.g., "id", "us").
+     * Fetches top headlines from NewsAPI.
+     * @param country 2-letter ISO 3166-1 code (e.g., "id", "us"). Defaults to config provider value if blank.
      * @param category Category filter (e.g., "business", "technology").
      * @param page Page number for pagination.
-     * @param pageSize Number of results per page (default 20).
+     * @param pageSize Number of results per page (default [AppConstants.DEFAULT_PAGE_SIZE]).
      */
     suspend fun getTopHeadlines(
-        country: String = NewsConfig.DEFAULT_COUNTRY,
+        country: String = "",
         category: String? = null,
         page: Int = 1,
-        pageSize: Int = 20
+        pageSize: Int = AppConstants.DEFAULT_PAGE_SIZE
     ): NewsResponseDto
 
     /**
      * Searches articles by keyword query across all sources.
      * @param query Search query text.
      * @param page Page number for pagination.
-     * @param pageSize Number of results per page (default 20).
+     * @param pageSize Number of results per page (default [AppConstants.DEFAULT_PAGE_SIZE]).
      */
     suspend fun searchNews(
         query: String,
         page: Int = 1,
-        pageSize: Int = 20
+        pageSize: Int = AppConstants.DEFAULT_PAGE_SIZE
     ): NewsResponseDto
 }
 
 /**
- * Default implementation of [NewsApiService] using Ktor [HttpClient].
+ * Default implementation of [NewsApiService] using Ktor [HttpClient] and dynamic [ApiConfigProvider].
  */
 class KtorNewsApiService(
     private val client: HttpClient,
-    private val baseUrl: String = NewsConfig.BASE_URL
+    private val configProvider: ApiConfigProvider = DefaultApiConfigProvider()
 ) : NewsApiService {
+
+    private val baseUrl: String get() = configProvider.baseUrl
 
     override suspend fun getTopHeadlines(
         country: String,
@@ -51,23 +56,8 @@ class KtorNewsApiService(
         page: Int,
         pageSize: Int
     ): NewsResponseDto {
-        val primaryResponse = fetchHeadlines(country = country, category = category, page = page, pageSize = pageSize)
-
-        // Smart Fallback: If country is not fallback country (e.g. 'id') and returns empty articles or error,
-        // automatically fallback to global/US headlines so the user always receives fresh news.
-        if (country != NewsConfig.FALLBACK_COUNTRY && (primaryResponse.articles.isNullOrEmpty() || primaryResponse.status != "ok")) {
-            val fallbackResponse = fetchHeadlines(
-                country = NewsConfig.FALLBACK_COUNTRY,
-                category = category,
-                page = page,
-                pageSize = pageSize
-            )
-            if (!fallbackResponse.articles.isNullOrEmpty()) {
-                return fallbackResponse
-            }
-        }
-
-        return primaryResponse
+        val targetCountry = if (country.isNotBlank()) country else configProvider.defaultCountry
+        return fetchHeadlines(country = targetCountry, category = category, page = page, pageSize = pageSize)
     }
 
     private suspend fun fetchHeadlines(
@@ -83,8 +73,9 @@ class KtorNewsApiService(
             }
             parameter("page", page)
             parameter("pageSize", pageSize)
-            if (NewsConfig.apiKey.isNotBlank() && NewsConfig.apiKey != "YOUR_NEWS_API_KEY_HERE") {
-                parameter("apiKey", NewsConfig.apiKey)
+            val apiKey = configProvider.apiKey
+            if (apiKey.isNotBlank()) {
+                parameter("apiKey", apiKey)
             }
         }.body()
     }
@@ -99,8 +90,9 @@ class KtorNewsApiService(
             parameter("sortBy", "publishedAt")
             parameter("page", page)
             parameter("pageSize", pageSize)
-            if (NewsConfig.apiKey.isNotBlank() && NewsConfig.apiKey != "YOUR_NEWS_API_KEY_HERE") {
-                parameter("apiKey", NewsConfig.apiKey)
+            val apiKey = configProvider.apiKey
+            if (apiKey.isNotBlank()) {
+                parameter("apiKey", apiKey)
             }
         }.body()
     }
