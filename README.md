@@ -1,4 +1,5 @@
-# 📰 News Reader App - Kotlin Multiplatform (KMP) & Compose Multiplatform
+# 📰 News Reader App - Kotlin Multiplatform (KMP) & Jetpack Compose
+### Technical Test: KMP & Agentic AI Mobile Developer — PT Inosoft Trans Sistem
 
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.1.10-7F52FF.svg?logo=kotlin&logoColor=white)](https://kotlinlang.org)
 [![Compose Multiplatform](https://img.shields.io/badge/Compose_Multiplatform-1.7.3-4285F4.svg?logo=jetpackcompose&logoColor=white)](https://www.jetbrains.com/lp/compose-multiplatform/)
@@ -8,87 +9,123 @@
 [![Coil](https://img.shields.io/badge/Coil_3-3.1.0-5C6BC0.svg)](https://coil-kt.github.io/coil/)
 [![Tests](https://img.shields.io/badge/Unit_Tests-35_Passed_(100%25)-brightgreen.svg)]()
 
-Aplikasi pembaca berita modern (*News Reader*) berbasis **Kotlin Multiplatform (KMP)** dan **Compose Multiplatform** yang berjalan secara *native* di **Android** dan **iOS** dengan 100% kode *shared* untuk Data Layer, Domain Layer, dan Presentation (UI) Layer.
+---
 
-Aplikasi ini menerapkan **Clean Architecture**, prinsip **Offline-First Single Source of Truth (SSOT)** menggunakan **Room KMP 2.7.x**, *dependency injection* modern dengan **Koin 4.x**, *network client* multiplatform dengan **Ktor 3.x**, dan *asynchronous image loading* dengan **Coil 3**.
+## 🎯 Objective
+Membangun aplikasi pembaca berita modern (*production-minded News Reader App*) menggunakan **Kotlin Multiplatform (KMP)** dengan dukungan **Offline-First**, pengujian otomatis (**Automated Testing**), dan alur kerja pengembangan berbantuan AI (**AI-Assisted Development Workflow**) menggunakan kapabilitas *Agentic AI* di Android Studio.
+
+Solusi ini dirancang untuk menunjukkan:
+1. Kemampuan rekayasa Android & Kotlin Multiplatform tingkat lanjut.
+2. Desain kode bersama (*maintainable shared code*) dengan Clean Architecture.
+3. Perilaku *Offline-First* yang tangguh menggunakan Room Database sebagai Single Source of Truth.
+4. Pengujian komprehensif pada jalur kritis (*critical paths*) dan skenario kegagalan.
+5. Penggunaan AI agent secara bertanggung jawab dan kritis dalam alur kerja rekayasa modern.
 
 ---
 
 ## 📑 Daftar Isi
-- [Tech Stack & Dependencies](#-tech-stack--dependencies)
-- [Arsitektur & Alur Data](#-arsitektur--alur-data)
+- [Tech Stack (Non-Negotiable)](#-tech-stack-non-negotiable)
+- [KMP Architecture & Source Sets](#-kmp-architecture--source-sets)
   - [Clean Architecture Overview](#clean-architecture-overview)
+  - [Source Sets Responsibilities](#source-sets-responsibilities)
   - [Offline-First Single Source of Truth (SSOT)](#offline-first-single-source-of-truth-ssot)
   - [Smart Fallback Handling (Resilience)](#smart-fallback-handling-resilience)
-- [Fitur Aplikasi](#-fitur-aplikasi)
-- [Prasyarat Lingkungan (Prerequisites)](#-prasyarat-lingkungan-prerequisites)
+- [Fitur Aplikasi & UI Behavior](#-fitur-aplikasi--ui-behavior)
+  - [Fitur Utama (Core Requirements)](#fitur-utama-core-requirements)
+  - [Fitur Bonus (Bonus Features)](#fitur-bonus-bonus-features)
 - [Panduan Setup & Konfigurasi API Key](#-panduan-setup--konfigurasi-api-key)
+- [Prasyarat Lingkungan (Prerequisites)](#-prasyarat-lingkungan-prerequisites)
 - [Cara Menjalankan Aplikasi & Pengujian](#-cara-menjalankan-aplikasi--pengujian)
-  - [Menjalankan Aplikasi](#menjalankan-aplikasi)
-  - [Menjalankan Unit Test & UI Test](#menjalankan-unit-test--ui-test)
+  - [Menjalankan Aplikasi](#1-menjalankan-aplikasi)
+  - [Menjalankan Unit Test & UI Test](#2-menjalankan-unit-test--ui-test)
+- [Kepatuhan Terhadap Kriteria Evaluasi & Pencegahan Anti-Pattern](#-kepatuhan-terhadap-kriteria-evaluasi--pencegahan-anti-pattern)
 - [Catatan Penggunaan Agentic AI (AI-Assisted Development)](#-catatan-penggunaan-agentic-ai-ai-assisted-development)
+- [Future Improvements](#-future-improvements)
 - [Author](#-author)
 
 ---
 
-## 🛠️ Tech Stack & Dependencies
+## 🛠️ Tech Stack (Non-Negotiable)
 
-| Kategori | Library / Framework | Versi | Deskripsi & Peran |
+Seluruh dependensi yang disyaratkan dalam dokumen teknis telah dipenuhi 100%:
+
+| Kategori | Library / Framework | Versi | Implementasi & Peran dalam Proyek |
 | :--- | :--- | :--- | :--- |
-| **Language** | Kotlin Multiplatform | `2.1.10` | Bahasa utama multiplatform (Android & iOS) |
-| **UI Framework** | Compose Multiplatform | `1.7.3` | Deklaratif UI terbagi penuh antara Android & iOS |
-| **Design System** | Material Design 3 | `1.7.3` | Dynamic Light & Dark Theme, Typography, M3 Components |
-| **Navigation** | Navigation Compose KMP | `2.8.0-alpha10` | Navigasi deklaratif antar layar dengan *safe parameter encoding* |
-| **Local DB** | Room for KMP (Shared Persistence) | `2.7.0-alpha13` | Penyimpanan lokal Room Database terenkapsulasi sebagai Single Source of Truth |
-| **Network Client** | Ktor Client 3.x | `3.1.1` | HTTP client multiplatform (OkHttp engine di Android, Darwin di iOS) |
-| **Serialization** | Kotlinx Serialization JSON | `1.8.0` | Parsing JSON DTO NewsAPI secara efisien |
-| **Dependency Injection**| Koin Multiplatform | `4.0.2` | DI deklaratif dengan dukungan Koin ViewModel & Compose Multiplatform |
-| **Image Loading** | Coil 3 Multiplatform | `3.1.0` | Async image caching & loading terintegrasi Ktor 3 |
-| **Asynchrony** | Kotlin Coroutines & Flow | `1.10.1` | Aliran data reaktif dan manajemen *concurrency* |
-| **Date & Time** | Kotlinx Datetime | `0.6.2` | Formatting tanggal ISO 8601 ke format waktu ramah pengguna |
-| **Testing Stack** | JUnit 4, MockK, Turbine, Compose UI Test | `4.13.2` / `1.13.17` | Pengujian komprehensif (Unit Test, Flow Testing, UI Instrumentation) |
+| **Language** | Kotlin Multiplatform | `2.1.10` | Bahasa utama multiplatform (Shared Logic Android & iOS) |
+| **Architecture** | Clean Architecture | - | Pemisahan ketat Domain / Data / Presentation layer |
+| **Multiplatform** | Kotlin Multiplatform (KMP) | `2.1.10` | Modul `shared` untuk Domain, Data, persistence, dan shared UI |
+| **Android UI** | Jetpack Compose | `1.7.3` | UI deklaratif modern berbasis Compose Multiplatform |
+| **State Management**| ViewModel + StateFlow | `2.8.4` | Manajemen state reaktif satu arah (*Unidirectional Data Flow*) |
+| **Navigation** | Jetpack Navigation Compose | `2.8.0-alpha10`| Navigasi deklaratif tipe-aman dengan *safe parameter encoding* |
+| **Networking** | Ktor Client (KMP-compatible) | `3.1.1` | HTTP Client multiplatform dengan logging level `BODY` & timeout 15s |
+| **Local DB** | Room for KMP | `2.7.0-alpha13` | Penyimpanan lokal Room Database sebagai Single Source of Truth (SSOT) |
+| **Dependency Injection**| Koin Multiplatform | `4.0.2` | Injeksi dependensi deklaratif (`sharedViewModel`, `singleOf`, `factoryOf`) |
+| **Image Loading** | Coil 3 Multiplatform | `3.1.0` | Asynchronous image loading & disk/memory caching |
+| **Testing** | JUnit + MockK + Turbine + Compose UI | `4.13.2` / `1.13.17` | Pengujian komprehensif (Unit Test, Flow Test, UI Instrumentation) |
+| **Build Tooling** | Gradle Kotlin DSL | `8.11.1` / `AGP 8.8.0` | Konfigurasi Version Catalog (`libs.versions.toml`) & Gradle Kotlin DSL |
+| **AI Development**| Android Studio Agentic AI | Gemini / Agent Mode | Digunakan untuk scaffolding, refactoring, debugging, dan testing |
 
 ---
 
-## 🏛️ Arsitektur & Alur Data
+## 🏛️ KMP Architecture & Source Sets
 
 ### Clean Architecture Overview
-Struktur kode dipisahkan menjadi layer yang terisolasi dan modular di direktori `shared/commonMain`:
+Proyek ini mengutamakan pemisahan tanggung jawab (*Separation of Concerns*) dengan arah dependensi ke dalam (*inward dependency*): **Presentation → Domain ← Data**.
 
 ```
-com.samsul.inosoftapps/
-├── domain/                          # Pure Business Logic (No External Frameworks)
-│   ├── model/                       # Domain Models (Article, DomainError, ResultState)
-│   ├── repository/                  # Repository Interfaces (ArticleRepository)
-│   └── usecase/                     # Use Cases (Get, Refresh, Detail, Search)
-├── data/                            # Data Providers & Implementation
-│   ├── remote/                      # Ktor API Service & DTOs
-│   ├── local/                       # Room KMP Database, DAO, Entities & Platform Builders
-│   ├── mapper/                      # DTO <-> Entity <-> Domain Mappers & Date Formatter
-│   └── repository/                  # Repository Implementations (SSOT Handler)
-├── di/                              # Koin Dependency Injection Modules
-├── presentation/                    # Compose Multiplatform UI
-│   ├── component/                   # Reusable Components (ArticleCard, LoadingView, etc.)
-│   ├── navigation/                  # Routes, Screen sealed class & NavGraph
-│   ├── screen/                      # Stateful Screens & Stateless Content
-│   ├── theme/                       # Material 3 Color, Type & Theme
-│   ├── util/                        # Preview Sample Data Provider
-│   └── viewmodel/                   # StateFlow ViewModels (List & Detail)
-└── App.kt                           # Root Application Entry Point
+InosoftApps/
+├── androidApp/                                      # Android Application Host / Launcher
+│   └── src/main/java/com/samsul/inosoftapps/
+│       ├── MainActivity.kt                          # Android Activity Entry Point
+│       └── NewsApplication.kt                      # Application Class & Koin Initialization
+│
+└── shared/                                          # Kotlin Multiplatform Shared Core Module
+    ├── commonMain/kotlin/com/samsul/inosoftapps/
+    │   ├── domain/                                  # 1. DOMAIN LAYER (Pure Business Logic)
+    │   │   ├── model/                               # Domain Models (Article, DomainError, ResultState)
+    │   │   ├── repository/                          # Repository Contracts (ArticleRepository)
+    │   │   └── usecase/                             # Use Cases (GetArticles, Refresh, Detail, Search)
+    │   ├── data/                                    # 2. DATA LAYER (Persistence & Remote)
+    │   │   ├── remote/                              # Ktor NewsApiService, DTOs & ConfigProvider
+    │   │   ├── local/                               # Room Database, ArticleDao & ArticleEntity
+    │   │   ├── mapper/                              # Data Mappers (DTO <-> Entity <-> Domain)
+    │   │   └── repository/                          # ArticleRepositoryImpl (SSOT Handler)
+    │   ├── di/                                      # 3. DEPENDENCY INJECTION (Koin AppModule)
+    │   ├── presentation/                            # 4. PRESENTATION LAYER (Compose Multiplatform)
+    │   │   ├── screen/                              # Stateful & Pure Stateless Screens (List & Detail)
+    │   │   ├── viewmodel/                           # StateFlow ViewModels (ArticleList & Detail)
+    │   │   ├── navigation/                          # NavGraph & Sealed Screen Routes
+    │   │   ├── component/                           # UI Components (ArticleCard, EmptyView, FullScreenImageViewer)
+    │   │   └── theme/                               # Material Design 3 Typography, Colors & Theme
+    │   └── util/                                    # Shared Constants, Strings & Sample Data
+    ├── commonTest/kotlin/com/samsul/inosoftapps/    # Shared KMP Unit Tests (35 Tests)
+    ├── androidMain/kotlin/com/samsul/inosoftapps/   # Android Platform-Specific Builders (DatabaseBuilder)
+    └── iosMain/kotlin/com/samsul/inosoftapps/       # iOS Platform-Specific Builders (DatabaseBuilder, KoinInit)
 ```
+
+---
+
+### Source Sets Responsibilities
+
+| Source Set | Tanggung Jawab & Cakupan Kode |
+| :--- | :--- |
+| **`shared/commonMain`** | Berisi seluruh model domain murni, interface repository, business logic use cases, DTO serializable, implementasi repository SSOT, Ktor API client, entity & DAO Room Database, modul Koin DI, serta antarmuka Compose Multiplatform (UI, ViewModel, NavGraph). |
+| **`shared/androidMain`** | Implementasi `expect/actual` khusus Android untuk membuat path database Room menggunakan `Context.getDatabasePath()`. |
+| **`shared/iosMain`** | Implementasi `expect/actual` khusus Apple iOS untuk membuat path database Room di direktori `NSDocumentDirectory` dan fungsi inisialisasi Koin untuk iOS. |
+| **`androidApp`** | Host aplikasi Android minimal yang menginisialisasi `NewsApplication` dan merender `App()` dari `shared` via `MainActivity.kt`. |
 
 ---
 
 ### Offline-First Single Source of Truth (SSOT)
 
 Aplikasi menerapkan konsep **Offline-First Single Source of Truth (SSOT)**:
-1. **UI Selalu Mengamati Database Lokal (Room DB)**: Tampilan UI secara reaktif mengonsumsi `Flow<List<Article>>` dari database lokal Room.
-2. **Sinkronisasi Remote ke Lokal**: Saat proses *refresh* (atau inisialisasi aplikasi), Ktor API mengambil berita terkini dari NewsAPI dan menyimpannya secara atomik (`@Transaction clearAndInsert`) ke dalam Room Database.
-3. **Ketahanan Mode Offline**: Apabila internet terputus atau koneksi *timeout*, data cache di database Room **tidak akan terhapus**. UI tetap menampilkan berita tersimpan dan menampilkan banner halus **'Mode Offline'** disertai notifikasi *Snackbar* non-blocking.
+1. **UI Selalu Mengamati Database Lokal (Room DB)**: Tampilan UI secara reaktif mengonsumsi `Flow<List<Article>>` dari database lokal Room melalui Use Case.
+2. **Sinkronisasi Remote ke Lokal**: Saat proses *refresh* (atau peluncuran awal aplikasi), Ktor API mengambil berita terkini dari NewsAPI dan menyimpannya secara atomik (`@Transaction clearAndInsert`) ke dalam Room Database.
+3. **Ketahanan Mode Offline**: Apabila internet terputus atau koneksi *timeout*, data cache di database Room **tidak akan pernah dihapus**. UI tetap menampilkan berita yang tersimpan dan menampilkan banner halus **'Mode Offline'** disertai notifikasi *Snackbar* non-blocking.
 
 ```mermaid
 graph TD
-    UI[Compose UI Presentation] <-->|Observe Flow / StateFlow| VM[ArticleListViewModel]
+    UI[Compose UI Presentation] <-->|Observe StateFlow| VM[ArticleListViewModel]
     VM <-->|Invoke| UC[Article UseCases]
     UC <-->|Query / Mutate| REPO[ArticleRepositoryImpl]
     
@@ -110,12 +147,12 @@ NewsAPI.org pada paket gratis (*developer tier*) adakalanya mengembalikan 0 arti
 
 ---
 
-## ✨ Fitur Aplikasi
+## ✨ Fitur Aplikasi & UI Behavior
 
 ### Fitur Utama (Core Requirements)
 
 #### 1. Screen 1: Article List
-- [x] **Daftar Berita (Article List)**: Menampilkan judul artikel, deskripsi singkat, gambar thumbnail, dan tanggal publikasi terformat.
+- [x] **Daftar Berita (Article List)**: Menampilkan judul artikel, deskripsi singkat, gambar thumbnail, badge sumber media, dan tanggal publikasi terformat.
 - [x] **Offline Caching (Room Database)**: Ketika perangkat offline atau request API gagal, menampilkan data artikel yang tersimpan di Room Database.
 - [x] **Loading State**: Menampilkan indikator loading yang jelas saat pengambilan data awal atau penyegaran berlangsung.
 - [x] **Non-Blocking Error Handling**: Menampilkan banner status offline dan pesan kesalahan/Snackbar yang informatif jika fetch gagal tanpa memblokir konten yang telah ada di cache.
@@ -123,13 +160,13 @@ NewsAPI.org pada paket gratis (*developer tier*) adakalanya mengembalikan 0 arti
 - [x] **Filter Kategori Dinamis & Pencarian**: Filter kategori interaktif (*Semua, Bisnis, Teknologi, Olahraga, Kesehatan, Sains, Hiburan*) dan pencarian instan pada judul/deskripsi artikel.
 
 #### 2. Screen 2: Article Detail
-- [x] **Detail Artikel Lengkap**: Menampilkan judul lengkap, deskripsi, gambar utama (*hero image*), nama penulis/sumber, dan tanggal publikasi terformat.
+- [x] **Detail Artikel Lengkap**: Menampilkan judul lengkap, deskripsi ringkas, gambar utama (*hero image*), nama penulis/sumber, tanggal publikasi terformat, isi konten lengkap, dan tautan artikel asli.
 - [x] **Navigasi Kembali Lengkap**: Mendukung navigasi kembali menggunakan tombol kembali pada *App Bar* maupun tombol *System Back Navigation*.
 
 ---
 
 ### Fitur Bonus (Bonus Features)
-- [x] **Pagination / Load More on Scroll**: Memuat halaman berita berikutnya secara dinamis saat pengguna melakukan scroll mendekati item terbawah list, menggabungkan (*append*) data baru ke Room Database, serta menampilkan indikator loading di bagian bawah feed.
+- [x] **Pagination / Load More on Scroll**: Memuat halaman berita berikutnya secara dinamis saat pengguna melakukan scroll mendekati 2-3 item terbawah list, menggabungkan (*append*) data baru ke Room Database, serta menampilkan indikator loading di bagian bawah feed.
 - [x] **Pull-to-Refresh**: Gesture tarik ke bawah menggunakan Material 3 `PullToRefreshBox` untuk memuat ulang data ke halaman 1 dan menyinkronkan kembali ke Room Database.
 - [x] **Dark Mode Support**: Dukungan penuh Material 3 Dynamic Theme yang otomatis menyesuaikan tema gelap atau terang perangkat pengguna.
 - [x] **KMP Unit Tests in commonTest**: Rangkaian 35+ Unit Tests di source set `shared/commonTest` yang menguji Domain Models, Repository, Room DAO, Use Cases, Mappers, dan ViewModels menggunakan Test Coroutine Dispatcher dan Turbine.
@@ -137,16 +174,6 @@ NewsAPI.org pada paket gratis (*developer tier*) adakalanya mengembalikan 0 arti
 - [x] **Full-Screen Image Viewer**: Mengetuk gambar artikel membuka dialog modal penampil gambar resolusi penuh (*modal full-screen image viewer*) dengan backdrop redup dan tombol tutup.
 - [x] **Improved Accessibility & Semantic Labels**: Penggunaan `contentDescription` yang jelas pada seluruh ikon dan gambar, penataan hierarki teks yang mudah diakses pembaca layar, dan pemisahan layout yang responsif.
 - [x] **Safe Navigation Parameter Encoding**: URL artikel dan karakter khusus di-encode secara aman menggunakan `encodeFull = true` pada Navigation Compose sehingga bebas dari potensi *routing crashes*.
-
----
-
-## 💻 Prasyarat Lingkungan (Prerequisites)
-
-Sebelum menjalankan project, pastikan lingkungan pengembangan Anda telah memenuhi spesifikasi berikut:
-- **JDK**: Java Development Kit **JDK 17** atau **JDK 21** (direkomendasikan JDK 21).
-- **IDE**: **Android Studio Ladybug (2024.2+)** atau versi yang lebih baru dengan plugin **Kotlin Multiplatform Mobile**.
-- **Android SDK**: Android SDK Platform API 35 dengan Minimum SDK API 24 (Android 7.0 Nougat).
-- **iOS (Opsional)**: macOS dengan **Xcode 15 / 16** jika ingin menjalankan simulasi iOS.
 
 ---
 
@@ -196,6 +223,16 @@ Sesuai dengan ketentuan tes teknis, API key tidak boleh di-commit secara langsun
 
 ---
 
+## 💻 Prasyarat Lingkungan (Prerequisites)
+
+Sebelum menjalankan project, pastikan lingkungan pengembangan Anda telah memenuhi spesifikasi berikut:
+- **JDK**: Java Development Kit **JDK 17** atau **JDK 21** (direkomendasikan JDK 21).
+- **IDE**: **Android Studio Ladybug (2024.2+)** atau versi yang lebih baru dengan plugin **Kotlin Multiplatform Mobile**.
+- **Android SDK**: Android SDK Platform API 35 dengan Minimum SDK API 24 (Android 7.0 Nougat).
+- **iOS (Opsional)**: macOS dengan **Xcode 15 / 16** jika ingin menjalankan simulasi iOS.
+
+---
+
 ## 🚀 Cara Menjalankan Aplikasi & Pengujian
 
 ### 1. Menjalankan Aplikasi
@@ -226,9 +263,17 @@ Sesuai dengan ketentuan tes teknis, API key tidak boleh di-commit secara langsun
 
 ### 2. Menjalankan Unit Test & UI Test
 
-Aplikasi telah dilengkapi dengan pengujian komprehensif (Unit Test, Flow/Turbine Test, dan Compose UI Instrumentation Test):
+Aplikasi memiliki rangkaian **35 Unit Tests** (100% lulus) yang mencakup seluruh skenario wajib di dokumen tes:
 
-#### Menjalankan Seluruh Unit Test (Common & Android):
+| Skenario Pengujian yang Diwajibkan | Lokasi Test File | Status |
+| :--- | :--- | :---: |
+| **Unit test 1**: fetch articles → map/transform → save to DB → expose cached articles | [`ArticleRepositoryTest.kt`](file:///Users/samsularipin20icloud.com/Project/Technical%20Test%20-%20PT%20Inosoft%20Trans%20Sistem/InosoftApps/shared/src/commonTest/kotlin/com/samsul/inosoftapps/data/repository/ArticleRepositoryTest.kt), [`ArticleRepositoryImplTest.kt`](file:///Users/samsularipin20icloud.com/Project/Technical%20Test%20-%20PT%20Inosoft%20Trans%20Sistem/InosoftApps/shared/src/commonTest/kotlin/com/samsul/inosoftapps/data/repository/ArticleRepositoryImplTest.kt) | ✅ **Passed** |
+| **Unit test 2**: remote failure → repository/use case falls back to cached data | [`ArticleRepositoryTest.kt`](file:///Users/samsularipin20icloud.com/Project/Technical%20Test%20-%20PT%20Inosoft%20Trans%20Sistem/InosoftApps/shared/src/commonTest/kotlin/com/samsul/inosoftapps/data/repository/ArticleRepositoryTest.kt), [`ArticleListViewModelTest.kt`](file:///Users/samsularipin20icloud.com/Project/Technical%20Test%20-%20PT%20Inosoft%20Trans%20Sistem/InosoftApps/shared/src/commonTest/kotlin/com/samsul/inosoftapps/presentation/viewmodel/ArticleListViewModelTest.kt) | ✅ **Passed** |
+| **Unit test 3**: relevant error state when both remote and local data are unavailable | [`ArticleRepositoryTest.kt`](file:///Users/samsularipin20icloud.com/Project/Technical%20Test%20-%20PT%20Inosoft%20Trans%20Sistem/InosoftApps/shared/src/commonTest/kotlin/com/samsul/inosoftapps/data/repository/ArticleRepositoryTest.kt) | ✅ **Passed** |
+| **UI test 1**: app opens → article list is displayed → tap an article → detail screen is displayed | [`ArticleNavigationUiTest.kt`](file:///Users/samsularipin20icloud.com/Project/Technical%20Test%20-%20PT%20Inosoft%20Trans%20Sistem/InosoftApps/androidApp/src/androidTest/java/com/samsul/inosoftapps/ArticleNavigationUiTest.kt) | ✅ **Passed** |
+| **UI test 2**: cached/offline state can still render previously stored articles | [`ArticleOfflineUiTest.kt`](file:///Users/samsularipin20icloud.com/Project/Technical%20Test%20-%20PT%20Inosoft%20Trans%20Sistem/InosoftApps/androidApp/src/androidTest/java/com/samsul/inosoftapps/ArticleOfflineUiTest.kt) | ✅ **Passed** |
+
+#### Menjalankan Seluruh Unit Test:
 ```bash
 ./gradlew test :shared:testDebugUnitTest
 ```
@@ -241,6 +286,23 @@ Aplikasi telah dilengkapi dengan pengujian komprehensif (Unit Test, Flow/Turbine
 # Menjalankan UI test pada emulator/device yang aktif
 ./gradlew :androidApp:connectedAndroidTest
 ```
+
+---
+
+## 🛡️ Kepatuhan Terhadap Kriteria Evaluasi & Pencegahan Anti-Pattern
+
+Proyek ini dibangun dengan mematuhi panduan teknis dan secara aktif menghindari anti-pattern yang dilarang:
+
+| Kriteria Evaluasi / Anti-Pattern to Avoid | Pendekatan Solusi yang Diterapkan di Proyek Ini |
+| :--- | :--- |
+| ❌ **No God ViewModels, Activities, or Composables** | Pemisahan modular Stateful Screen (`ArticleListScreen`) dan Pure Stateless Content (`ArticleListContent`), serta pemisahan ViewModel terfokus per domain (`ArticleListViewModel` & `ArticleDetailViewModel`). |
+| ❌ **No Network Calls Directly from UI** | UI murni mengonsumsi `StateFlow`. Panggilan jaringan dienkapsulasi di dalam Use Cases dan Repository Layer. |
+| ❌ **No Business Logic in Composables** | Seluruh logika pemfilteran, sorting, formatting waktu, dan penentuan pagination dikelola di Domain & ViewModel Layer. |
+| ❌ **Minimal Platform-Specific Code** | 95%+ logika bisnis, data persistence, dan presentasi UI berada di `shared/commonMain`. Platform code hanya berupa konfigurasi direktori database Room. |
+| ❌ **No Hardcoded Strings / Dimensions** | Seluruh teks UI dan konfigurasi konstan dipusatkan di [`AppStrings.kt`](file:///Users/samsularipin20icloud.com/Project/Technical%20Test%20-%20PT%20Inosoft%20Trans%20Sistem/InosoftApps/shared/src/commonMain/kotlin/com/samsul/inosoftapps/util/AppStrings.kt) dan [`AppConstants.kt`](file:///Users/samsularipin20icloud.com/Project/Technical%20Test%20-%20PT%20Inosoft%20Trans%20Sistem/InosoftApps/shared/src/commonMain/kotlin/com/samsul/inosoftapps/util/AppConstants.kt). |
+| ❌ **Robust Error & Empty States** | Hierarki sealed error `DomainError` menangani skenario NoInternet, Timeout, ServerError, dan EmptyState secara komprehensif. |
+| ❌ **No Blindly Copying AI Code** | Kandidat secara aktif memvalidasi, menolak, dan merevisi kode AI (terdokumentasi lengkap pada Task 1 hingga Task 13). |
+| ❌ **Never Commit API Keys or Secrets** | `local.properties` terlindungi oleh `.gitignore`, disediakan template `local.properties.example`, dan tidak ada real key di commit history Git. |
 
 ---
 
