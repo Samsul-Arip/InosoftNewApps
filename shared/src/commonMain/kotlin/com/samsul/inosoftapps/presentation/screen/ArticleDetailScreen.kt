@@ -43,7 +43,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -101,15 +100,11 @@ fun ArticleDetailContent(
                 title = {
                     Text(
                         text = AppStrings.ARTICLE_DETAIL_TITLE,
-                        style = MaterialTheme.typography.titleLarge,
-                        modifier = Modifier.testTag("detail_title")
+                        style = MaterialTheme.typography.titleLarge
                     )
                 },
                 navigationIcon = {
-                    IconButton(
-                        onClick = onBackClick,
-                        modifier = Modifier.testTag("back_button")
-                    ) {
+                    IconButton(onClick = onBackClick) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = AppStrings.BACK_BUTTON_DESC

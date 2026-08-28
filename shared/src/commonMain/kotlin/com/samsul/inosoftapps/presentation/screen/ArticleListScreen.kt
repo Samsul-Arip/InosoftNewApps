@@ -172,8 +172,7 @@ fun ArticleListContent(
                     if (!isSearchActive) {
                         Text(
                             text = AppStrings.APP_NAME,
-                            style = MaterialTheme.typography.titleLarge,
-                            modifier = Modifier.testTag("app_title")
+                            style = MaterialTheme.typography.titleLarge
                         )
                     } else {
                         OutlinedTextField(
@@ -277,7 +276,6 @@ fun ArticleListContent(
                             selected = isSelected,
                             onClick = { onCategorySelected(catKey) },
                             label = { Text(catLabel) },
-                            modifier = Modifier.testTag("category_chip_${catKey ?: "all"}"),
                             colors = FilterChipDefaults.filterChipColors(
                                 selectedContainerColor = MaterialTheme.colorScheme.primary,
                                 selectedLabelColor = MaterialTheme.colorScheme.onPrimary

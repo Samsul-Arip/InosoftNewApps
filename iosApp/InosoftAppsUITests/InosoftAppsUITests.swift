@@ -20,35 +20,31 @@ final class InosoftAppsUITests: XCTestCase {
     func testClickingArticle_navigatesToDetailScreenAndBack() throws {
         // 1. Verify app window launched successfully
         let appWindow = app.windows.firstMatch
-        XCTAssertTrue(appWindow.waitForExistence(timeout: 20), "Application window should launch on iOS Simulator")
+        XCTAssertTrue(appWindow.waitForExistence(timeout: 15), "Application window should launch on iOS Simulator")
 
-        // 2. Locate header or main feed elements (matching testTag or text)
-        let appTitle = findComposeElement(matching: "app_title")
-        let appTitleByText = findComposeElement(matching: "News Reader")
-        let categoryChip = findComposeElement(matching: "category_chip_all")
-        let articleCard = findComposeElement(matching: "article_card")
+        // 2. Locate header or main feed elements (Compose accessibility on iOS)
+        let appTitle = findComposeElement(matching: "News Reader")
+        let categoryChip = findComposeElement(matching: "Semua")
 
-        let isFeedVisible = appTitle.waitForExistence(timeout: 10) ||
-                            appTitleByText.waitForExistence(timeout: 5) ||
-                            categoryChip.waitForExistence(timeout: 5) ||
-                            articleCard.waitForExistence(timeout: 5) ||
-                            appWindow.exists
-
+        let isFeedVisible = appTitle.waitForExistence(timeout: 10) || categoryChip.waitForExistence(timeout: 5)
         XCTAssertTrue(isFeedVisible, "News feed UI should be rendered")
 
-        // 3. Locate an article card or element in the feed and tap it
-        let targetElement = articleCard.exists ? articleCard : findComposeElement(matching: "Kotlin")
-        if targetElement.waitForExistence(timeout: 8) {
-            targetElement.tap()
+        // 3. Locate an article card in the feed
+        let articlePredicate = NSPredicate(format: "label CONTAINS[c] 'Kotlin' OR label CONTAINS[c] 'Berita' OR label CONTAINS[c] 'Ekonomi' OR label CONTAINS[c] 'Tech' OR label CONTAINS[c] 'Release'")
+        let articleElement = app.descendants(matching: .any).matching(articlePredicate).firstMatch
+
+        if articleElement.waitForExistence(timeout: 8) {
+            // Tap on the article card to navigate to detail
+            articleElement.tap()
 
             // 4. Verify detail screen header
-            let detailHeader = findComposeElement(matching: "detail_title")
+            let detailHeader = findComposeElement(matching: "Detail Berita")
             if detailHeader.waitForExistence(timeout: 6) {
-                XCTAssertTrue(detailHeader.exists, "Detail screen header should be displayed")
+                XCTAssertTrue(detailHeader.exists, "Detail screen header 'Detail Berita' should be displayed")
             }
 
             // 5. Tap Back button
-            let backButton = findComposeElement(matching: "back_button")
+            let backButton = findComposeElement(matching: "Kembali")
             if backButton.exists {
                 backButton.tap()
             }
@@ -60,23 +56,20 @@ final class InosoftAppsUITests: XCTestCase {
     func testOfflineOrInitialState_rendersGracefully() throws {
         // 1. Verify app window launched successfully
         let appWindow = app.windows.firstMatch
-        XCTAssertTrue(appWindow.waitForExistence(timeout: 20), "Application window should launch on iOS Simulator")
+        XCTAssertTrue(appWindow.waitForExistence(timeout: 15), "Application window should launch on iOS Simulator")
 
         // 2. Verify navigation header or category filter chips exist
-        let appTitle = findComposeElement(matching: "app_title")
-        let categoryAll = findComposeElement(matching: "category_chip_all")
-        let isRendered = appTitle.waitForExistence(timeout: 10) || categoryAll.waitForExistence(timeout: 5) || appWindow.exists
-        XCTAssertTrue(isRendered, "App bar header or category chips should be visible on iOS")
+        let appTitle = findComposeElement(matching: "News Reader")
+        let categoryAll = findComposeElement(matching: "Semua")
+
+        let isHeaderOrChipsVisible = appTitle.waitForExistence(timeout: 10) || categoryAll.waitForExistence(timeout: 5)
+        XCTAssertTrue(isHeaderOrChipsVisible, "App bar header or category chips should be visible on iOS")
     }
 
     // MARK: - Helper Methods for Compose Multiplatform iOS Accessibility
 
     private func findComposeElement(matching text: String) -> XCUIElement {
-        let predicate = NSPredicate(format: "identifier == %@ OR label CONTAINS[c] %@ OR identifier CONTAINS[c] %@ OR value CONTAINS[c] %@", text, text, text, text)
-        let element = app.descendants(matching: .any).matching(predicate).firstMatch
-        if element.exists {
-            return element
-        }
-        return app.otherElements[text]
+        let predicate = NSPredicate(format: "label CONTAINS[c] %@ OR identifier CONTAINS[c] %@ OR value CONTAINS[c] %@", text, text, text)
+        return app.descendants(matching: .any).matching(predicate).firstMatch
     }
 }
