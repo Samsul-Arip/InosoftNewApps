@@ -76,9 +76,16 @@ Proyek ini mengutamakan pemisahan tanggung jawab (*Separation of Concerns*) deng
 ```
 InosoftApps/
 ├── androidApp/                                      # Android Application Host / Launcher
-│   └── src/main/java/com/samsul/inosoftapps/
-│       ├── MainActivity.kt                          # Android Activity Entry Point
-│       └── NewsApplication.kt                      # Application Class & Koin Initialization
+│   └── src/main/
+│       ├── java/com/samsul/inosoftapps/NewsApplication.kt   # Android Application Class & Koin Init
+│       └── kotlin/com/samsul/inosoftapps/MainActivity.kt    # Android Activity Entry Point
+│
+├── iosApp/                                          # Native Apple iOS Host (SwiftUI & Xcode)
+│   ├── iosApp/
+│   │   ├── iOSApp.swift                             # SwiftUI App Entry Point
+│   │   ├── ContentView.swift                        # UIViewControllerRepresentable (Bridge to Compose UI)
+│   │   └── Assets.xcassets/                         # Native iOS Icon Assets & AppIconSet
+│   └── iosApp.xcodeproj/                            # Xcode Project & Build Configurations
 │
 └── shared/                                          # Kotlin Multiplatform Shared Core Module
     ├── commonMain/kotlin/com/samsul/inosoftapps/
@@ -101,7 +108,7 @@ InosoftApps/
     │   └── util/                                    # Shared Constants, Strings & Sample Data
     ├── commonTest/kotlin/com/samsul/inosoftapps/    # Shared KMP Unit Tests (35 Tests)
     ├── androidMain/kotlin/com/samsul/inosoftapps/   # Android Platform-Specific Builders (DatabaseBuilder)
-    └── iosMain/kotlin/com/samsul/inosoftapps/       # iOS Platform-Specific Builders (DatabaseBuilder, KoinInit)
+    └── iosMain/kotlin/com/samsul/inosoftapps/       # iOS Platform-Specific Builders (DatabaseBuilder, MainViewController)
 ```
 
 ---
@@ -112,8 +119,9 @@ InosoftApps/
 | :--- | :--- |
 | **`shared/commonMain`** | Berisi seluruh model domain murni, interface repository, business logic use cases, DTO serializable, implementasi repository SSOT, Ktor API client, entity & DAO Room Database, modul Koin DI, serta antarmuka Compose Multiplatform (UI, ViewModel, NavGraph). |
 | **`shared/androidMain`** | Implementasi `expect/actual` khusus Android untuk membuat path database Room menggunakan `Context.getDatabasePath()`. |
-| **`shared/iosMain`** | Implementasi `expect/actual` khusus Apple iOS untuk membuat path database Room di direktori `NSDocumentDirectory` dan fungsi inisialisasi Koin untuk iOS. |
+| **`shared/iosMain`** | Implementasi `expect/actual` khusus Apple iOS untuk membuat path database Room di direktori `NSDocumentDirectory`, fungsi inisialisasi Koin, serta entry point `MainViewController()` untuk integrasi SwiftUI. |
 | **`androidApp`** | Host aplikasi Android minimal yang menginisialisasi `NewsApplication` dan merender `App()` dari `shared` via `MainActivity.kt`. |
+| **`iosApp`** | Host aplikasi native Apple iOS (SwiftUI & Xcode) yang merender shared Compose UI via `UIViewControllerRepresentable` (`ContentView.swift`) dan mengelola bundle asset native iOS (`Assets.xcassets`). |
 
 ---
 
@@ -253,7 +261,7 @@ Sebelum menjalankan project, pastikan lingkungan pengembangan Anda telah memenuh
 - **JDK**: Java Development Kit **JDK 17** atau **JDK 21** (direkomendasikan JDK 21).
 - **IDE**: **Android Studio Ladybug (2024.2+)** atau versi yang lebih baru dengan plugin **Kotlin Multiplatform Mobile**.
 - **Android SDK**: Android SDK Platform API 35 dengan Minimum SDK API 24 (Android 7.0 Nougat).
-- **iOS (Opsional)**: macOS dengan **Xcode 15 / 16** jika ingin menjalankan simulasi iOS.
+- **Apple iOS (Wajib untuk Target iOS)**: Sistem operasi **macOS** dengan **Xcode 15 / 16** dan **Command Line Tools** wajib terinstal untuk mengompilasi shared Kotlin/Native framework dan menjalankan iOS Simulator.
 
 ---
 
@@ -264,52 +272,72 @@ Sebelum menjalankan project, pastikan lingkungan pengembangan Anda telah memenuh
 #### A. Menggunakan Android Studio (Direkomendasikan)
 1. Buka folder project di **Android Studio**.
 2. Tunggu proses **Gradle Sync** selesai.
-3. Pilih konfigurasi run **`androidApp`** pada toolbar atas.
-4. Pilih target perangkat fisik / emulator Android (API 24+) dan klik tombol **Run ▶**.
+3. **Untuk Menjalankan di Android**:
+   - Pilih konfigurasi run **`androidApp`** pada toolbar atas.
+   - Pilih target perangkat fisik / emulator Android (API 24+) dan klik tombol **Run ▶**.
+4. **Untuk Menjalankan di iOS (macOS)**:
+   - Pilih konfigurasi run **`iosApp`** pada dropdown konfigurasi run di toolbar atas Android Studio.
+   - Pilih target **iOS Simulator** (misal *iPhone 16 Pro*) dan klik tombol **Run ▶**.
+   *(Android Studio akan otomatis mengompilasi shared Kotlin framework dan meluncurkan iOS Simulator).*
 
-#### B. Menggunakan Terminal / Command Line
+> [!IMPORTANT]
+> **Wajib Menginstal Xcode untuk Target iOS**:
+> Untuk menjalankan konfigurasi **`iosApp`** (baik melalui Android Studio maupun Xcode), komputer wajib menggunakan **macOS** dan telah menginstal **Xcode (beserta iOS Simulator & Command Line Tools)**. Jika Xcode belum terinstal, opsi target iOS Simulator tidak akan muncul di Android Studio.
+
+#### B. Menggunakan Xcode (Alternatif untuk iOS)
+1. Buka direktori `iosApp/iosApp.xcodeproj` di **Xcode**.
+2. Pilih target iOS Simulator atau perangkat iOS fisik.
+3. Klik tombol **Run ▶** (atau tekan `Cmd + R`).
+
+#### C. Menggunakan Terminal / Command Line
 ```bash
-# Compile dan Build Debug APK
+# Compile dan Build Debug APK Android
 ./gradlew :androidApp:assembleDebug
 
-# Install dan Jalankan ke Emulator/Device yang aktif
+# Install dan Jalankan ke Emulator/Device Android yang aktif
 ./gradlew :androidApp:installDebug
-```
 
-#### C. Menjalankan Target iOS (Opsional)
-```bash
 # Compile shared Kotlin framework untuk iOS Simulator
 ./gradlew :shared:compileKotlinIosSimulatorArm64
 ```
-*Buka direktori `iosApp` di **Xcode** untuk menjalankan antarmuka di iOS Simulator.*
 
 ---
 
 ### 2. Menjalankan Unit Test & UI Test
 
-Aplikasi memiliki rangkaian **35 Unit Tests** (100% lulus) yang mencakup seluruh skenario wajib di dokumen tes:
-
 | Skenario Pengujian yang Diwajibkan | Lokasi Test File | Status |
-| :--- | :--- | :---: |
+| :--- | :--- | :--- |
 | **Unit test 1**: fetch articles → map/transform → save to DB → expose cached articles | [`ArticleRepositoryTest.kt`](file:///Users/samsularipin20icloud.com/Project/Technical%20Test%20-%20PT%20Inosoft%20Trans%20Sistem/InosoftApps/shared/src/commonTest/kotlin/com/samsul/inosoftapps/data/repository/ArticleRepositoryTest.kt), [`ArticleRepositoryImplTest.kt`](file:///Users/samsularipin20icloud.com/Project/Technical%20Test%20-%20PT%20Inosoft%20Trans%20Sistem/InosoftApps/shared/src/commonTest/kotlin/com/samsul/inosoftapps/data/repository/ArticleRepositoryImplTest.kt) | ✅ **Passed** |
 | **Unit test 2**: remote failure → repository/use case falls back to cached data | [`ArticleRepositoryTest.kt`](file:///Users/samsularipin20icloud.com/Project/Technical%20Test%20-%20PT%20Inosoft%20Trans%20Sistem/InosoftApps/shared/src/commonTest/kotlin/com/samsul/inosoftapps/data/repository/ArticleRepositoryTest.kt), [`ArticleListViewModelTest.kt`](file:///Users/samsularipin20icloud.com/Project/Technical%20Test%20-%20PT%20Inosoft%20Trans%20Sistem/InosoftApps/shared/src/commonTest/kotlin/com/samsul/inosoftapps/presentation/viewmodel/ArticleListViewModelTest.kt) | ✅ **Passed** |
 | **Unit test 3**: relevant error state when both remote and local data are unavailable | [`ArticleRepositoryTest.kt`](file:///Users/samsularipin20icloud.com/Project/Technical%20Test%20-%20PT%20Inosoft%20Trans%20Sistem/InosoftApps/shared/src/commonTest/kotlin/com/samsul/inosoftapps/data/repository/ArticleRepositoryTest.kt) | ✅ **Passed** |
-| **UI test 1**: app opens → article list is displayed → tap an article → detail screen is displayed | [`ArticleNavigationUiTest.kt`](file:///Users/samsularipin20icloud.com/Project/Technical%20Test%20-%20PT%20Inosoft%20Trans%20Sistem/InosoftApps/androidApp/src/androidTest/java/com/samsul/inosoftapps/ArticleNavigationUiTest.kt) | ✅ **Passed** |
-| **UI test 2**: cached/offline state can still render previously stored articles | [`ArticleOfflineUiTest.kt`](file:///Users/samsularipin20icloud.com/Project/Technical%20Test%20-%20PT%20Inosoft%20Trans%20Sistem/InosoftApps/androidApp/src/androidTest/java/com/samsul/inosoftapps/ArticleOfflineUiTest.kt) | ✅ **Passed** |
+| **UI test 1**: app opens → article list is displayed → tap an article → detail screen is displayed | **Android**: [`ArticleNavigationUiTest.kt`](file:///Users/samsularipin20icloud.com/Project/Technical%20Test%20-%20PT%20Inosoft%20Trans%20Sistem/InosoftApps/androidApp/src/androidTest/java/com/samsul/inosoftapps/ArticleNavigationUiTest.kt)<br>**iOS**: [`InosoftAppsUITests.swift`](file:///Users/samsularipin20icloud.com/Project/Technical%20Test%20-%20PT%20Inosoft%20Trans%20Sistem/InosoftApps/iosApp/InosoftAppsUITests/InosoftAppsUITests.swift) | ✅ **Passed** |
+| **UI test 2**: cached/offline state can still render previously stored articles | **Android**: [`ArticleOfflineUiTest.kt`](file:///Users/samsularipin20icloud.com/Project/Technical%20Test%20-%20PT%20Inosoft%20Trans%20Sistem/InosoftApps/androidApp/src/androidTest/java/com/samsul/inosoftapps/ArticleOfflineUiTest.kt)<br>**iOS**: [`InosoftAppsUITests.swift`](file:///Users/samsularipin20icloud.com/Project/Technical%20Test%20-%20PT%20Inosoft%20Trans%20Sistem/InosoftApps/iosApp/InosoftAppsUITests/InosoftAppsUITests.swift) | ✅ **Passed** |
 
-#### Menjalankan Seluruh Unit Test:
+#### A. Menjalankan Seluruh Unit Test (JVM & Shared KMP):
 ```bash
 ./gradlew test :shared:testDebugUnitTest
 ```
 
-#### Menjalankan Android Instrumented UI Test:
+#### B. Menjalankan Android Instrumented UI Test:
 ```bash
 # Memverifikasi kompilasi kode UI test
 ./gradlew :androidApp:compileDebugAndroidTestSources
 
-# Menjalankan UI test pada emulator/device yang aktif
+# Menjalankan UI test pada emulator/device Android yang aktif
 ./gradlew :androidApp:connectedAndroidTest
 ```
+
+#### C. Menjalankan iOS Instrumented UI Test (XCUITest di Xcode / macOS):
+1. **Melalui GUI Xcode**:
+   - Buka `iosApp/iosApp.xcodeproj` di **Xcode**.
+   - Tekan shortcut **`Cmd + U`** (atau menu **Product ➔ Test**) untuk menjalankan pengujian otomatis di iOS Simulator.
+2. **Melalui Terminal / Command Line**:
+   ```bash
+   xcodebuild test \
+     -project iosApp/iosApp.xcodeproj \
+     -scheme iosApp \
+     -destination 'platform=iOS Simulator,name=iPhone 16 Pro'
+   ```
 
 ---
 
@@ -325,7 +353,7 @@ Proyek ini dibangun dengan mematuhi panduan teknis dan secara aktif menghindari 
 | ❌ **Minimal Platform-Specific Code** | 95%+ logika bisnis, data persistence, dan presentasi UI berada di `shared/commonMain`. Platform code hanya berupa konfigurasi direktori database Room. |
 | ❌ **No Hardcoded Strings / Dimensions** | Seluruh teks UI dan konfigurasi konstan dipusatkan di [`AppStrings.kt`](file:///Users/samsularipin20icloud.com/Project/Technical%20Test%20-%20PT%20Inosoft%20Trans%20Sistem/InosoftApps/shared/src/commonMain/kotlin/com/samsul/inosoftapps/util/AppStrings.kt) dan [`AppConstants.kt`](file:///Users/samsularipin20icloud.com/Project/Technical%20Test%20-%20PT%20Inosoft%20Trans%20Sistem/InosoftApps/shared/src/commonMain/kotlin/com/samsul/inosoftapps/util/AppConstants.kt). |
 | ❌ **Robust Error & Empty States** | Hierarki sealed error `DomainError` menangani skenario NoInternet, Timeout, ServerError, dan EmptyState secara komprehensif. |
-| ❌ **No Blindly Copying AI Code** | Kandidat secara aktif memvalidasi, menolak, dan merevisi kode AI (terdokumentasi lengkap pada Task 1 hingga Task 13). |
+| ❌ **No Blindly Copying AI Code** | Kandidat secara aktif memvalidasi, menolak, dan merevisi kode AI (terdokumentasi lengkap pada Task 1 hingga Task 14). |
 | ❌ **Never Commit API Keys or Secrets** | `local.properties` terlindungi oleh `.gitignore`, disediakan template `local.properties.example`, dan tidak ada real key di commit history Git. |
 
 ---
@@ -453,6 +481,19 @@ Berikut adalah pencatatan tahapan rekayasa representatif dengan **prompt asli ap
   > *"Tolong tambahkan fitur Pagination (Infinite Scroll / Load more on scroll) pada daftar berita: 1. Di Layer Data (Room DAO & Repository): Di ArticleDao.kt, pastikan ada fungsi insertArticles(articles: List<ArticleEntity>) untuk menambahkan data baru tanpa menghapus data lama. Di ArticleRepositoryImpl.kt, tambahkan parameter page: Int = 1 (page == 1 clearAndInsert, page > 1 insertArticles). 2. Di Layer Presentation: Tambahkan currentPage, isLoadingMore, canLoadMore di ArticleListUiState dan buat fungsi loadMoreArticles() di ArticleListViewModel. 3. Di Layer UI: Pada LazyColumn di ArticleListScreen, buat deteksi scroll saat user sudah scroll mendekati 2-3 item terbawah untuk otomatis memicu onLoadMore() dan tampilkan CircularProgressIndicator 28dp di item terbawah."*
 * **Output yang Dihasilkan AI**:
   AI mengimplementasikan arsitektur pagination di Data, Domain, dan UI Layer menggunakan `derivedStateOf` pada `ArticleListScreen.kt`.
+
+---
+
+### Task 14: Perbaikan Semantics UI Test & Isolasi Full-Screen Image Preview
+* **Prompt Asli (Verbatim)**:
+  > *"do not preview image on ArticleCard, preview image on detail screen only = ini menyebabkan ui test gagal untuk navigate ke detail karna sistem klik gambar sehingga yang muncul preview image"*
+* **Output yang Dihasilkan AI**:
+  Menyesuaikan `contentDescription` dan penanganan klik gambar pada `ArticleCard.kt` serta mengisolasi interaksi penampil gambar layar penuh (*modal FullScreenImageViewer*) agar fokus pada `ArticleDetailScreen.kt`.
+* **Evaluasi & Perbaikan Kandidat (Critical Review & Fix)**:
+  * *Temuan Masalah*: Pada `ArticleCard.kt`, komponen `SubcomposeAsyncImage` memiliki `contentDescription` yang menduplikasi judul artikel (`article.title`) dan memiliki modifier klik tersendiri untuk preview gambar. Ketika Compose UI Test menjalankan `onNodeWithText(articleTitle).performClick()`, Compose Test Runner secara tidak sengaja mengklik node gambar (yang membuka modal gambar full-screen) alih-alih mengklik kartu artikel (`Card.onClick`). Hal ini menyebabkan pengujian navigasi ke layar detail gagal (`AssertionError: 'Detail Berita' is not displayed`).
+  * *Perbaikan*:
+    1. Mengubah `contentDescription` gambar di `ArticleCard.kt` menjadi `AppStrings.FULLSCREEN_IMAGE_DESC` (*"Gambar layar penuh"*) sehingga node judul teks (`Text(article.title)`) terisolasi secara bersih di pohon semantik (*semantics tree*).
+    2. Menambahkan `composeTestRule.waitForIdle()` pada `ArticleNavigationUiTest.kt` dan `ArticleOfflineUiTest.kt` agar Compose menyelesaikan siklus rekomposisi antarmuka sebelum melakukan asersi, sehingga seluruh pengujian UI lulus 100%.
 
 ---
 

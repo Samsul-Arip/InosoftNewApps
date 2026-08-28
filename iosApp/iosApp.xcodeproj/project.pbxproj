@@ -6,7 +6,18 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXContainerItemProxy section */
+		51EB3BED30420F0A00B87304 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 36A00502932A3CC5681BD0E0 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D1907DA3C884D9F8A5C1EF6A;
+			remoteInfo = iosApp;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
+		51EB3BE730420F0A00B87304 /* InosoftAppsUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = InosoftAppsUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		A94D0ADA8A55D08F1711EE1D /* InosoftApps.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = InosoftApps.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -29,6 +40,11 @@
 			path = iosApp;
 			sourceTree = "<group>";
 		};
+		51EB3BE830420F0A00B87304 /* InosoftAppsUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = InosoftAppsUITests;
+			sourceTree = "<group>";
+		};
 		7614C8C744A8E40C941886BE /* Configuration */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = Configuration;
@@ -37,6 +53,13 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		51EB3BE430420F0A00B87304 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		5E3BDC5A6FDD64EFE36A9B14 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -51,6 +74,7 @@
 			isa = PBXGroup;
 			children = (
 				A94D0ADA8A55D08F1711EE1D /* InosoftApps.app */,
+				51EB3BE730420F0A00B87304 /* InosoftAppsUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -60,6 +84,7 @@
 			children = (
 				7614C8C744A8E40C941886BE /* Configuration */,
 				19EE1BDFD0A8A473F2962A01 /* iosApp */,
+				51EB3BE830420F0A00B87304 /* InosoftAppsUITests */,
 				C28988FBC6E79E6A4AAD8595 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -67,6 +92,29 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		51EB3BE630420F0A00B87304 /* InosoftAppsUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 51EB3BF130420F0A00B87304 /* Build configuration list for PBXNativeTarget "InosoftAppsUITests" */;
+			buildPhases = (
+				51EB3BE330420F0A00B87304 /* Sources */,
+				51EB3BE430420F0A00B87304 /* Frameworks */,
+				51EB3BE530420F0A00B87304 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				51EB3BEE30420F0A00B87304 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				51EB3BE830420F0A00B87304 /* InosoftAppsUITests */,
+			);
+			name = InosoftAppsUITests;
+			packageProductDependencies = (
+			);
+			productName = InosoftAppsUITests;
+			productReference = 51EB3BE730420F0A00B87304 /* InosoftAppsUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 		D1907DA3C884D9F8A5C1EF6A /* iosApp */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 6CF4E7E67F246ACFFCF9E17C /* Build configuration list for PBXNativeTarget "iosApp" */;
@@ -97,9 +145,13 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1620;
+				LastSwiftUpdateCheck = 2660;
 				LastUpgradeCheck = 1620;
 				TargetAttributes = {
+					51EB3BE630420F0A00B87304 = {
+						CreatedOnToolsVersion = 26.6;
+						TestTargetID = D1907DA3C884D9F8A5C1EF6A;
+					};
 					D1907DA3C884D9F8A5C1EF6A = {
 						CreatedOnToolsVersion = 16.2;
 					};
@@ -120,12 +172,20 @@
 			projectRoot = "";
 			targets = (
 				D1907DA3C884D9F8A5C1EF6A /* iosApp */,
+				51EB3BE630420F0A00B87304 /* InosoftAppsUITests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		3015BAD648176D0EF6B0C7A4 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		51EB3BE530420F0A00B87304 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -157,6 +217,13 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		51EB3BE330420F0A00B87304 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		822C7F6A19121D7128DC6BE5 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -165,6 +232,14 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		51EB3BEE30420F0A00B87304 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D1907DA3C884D9F8A5C1EF6A /* iosApp */;
+			targetProxy = 51EB3BED30420F0A00B87304 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		34CED092AF55128B6358BBCE /* Release */ = {
@@ -222,6 +297,50 @@
 				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		51EB3BEF30420F0A00B87304 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = ZA9WJV5DKV;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = disa.InosoftAppsUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = iosApp;
+			};
+			name = Debug;
+		};
+		51EB3BF030420F0A00B87304 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = ZA9WJV5DKV;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = disa.InosoftAppsUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = iosApp;
 			};
 			name = Release;
 		};
@@ -351,6 +470,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		51EB3BF130420F0A00B87304 /* Build configuration list for PBXNativeTarget "InosoftAppsUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				51EB3BEF30420F0A00B87304 /* Debug */,
+				51EB3BF030420F0A00B87304 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		6CF4E7E67F246ACFFCF9E17C /* Build configuration list for PBXNativeTarget "iosApp" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

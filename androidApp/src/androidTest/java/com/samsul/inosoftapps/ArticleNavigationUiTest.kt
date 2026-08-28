@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -14,6 +15,7 @@ import com.samsul.inosoftapps.presentation.theme.NewsReaderTheme
 import com.samsul.inosoftapps.presentation.util.SampleData
 import com.samsul.inosoftapps.presentation.viewmodel.ArticleDetailUiState
 import com.samsul.inosoftapps.presentation.viewmodel.ArticleListUiState
+import com.samsul.inosoftapps.util.AppStrings
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -63,13 +65,15 @@ class ArticleNavigationUiTest {
 
         // Perform click on article item
         composeTestRule.onNodeWithText(articleTitle).performClick()
+        composeTestRule.waitForIdle()
 
         // Verify detail screen is displayed
-        composeTestRule.onNodeWithText("Detail Berita").assertIsDisplayed()
+        composeTestRule.onNodeWithText(AppStrings.ARTICLE_DETAIL_TITLE).assertIsDisplayed()
         composeTestRule.onNodeWithText(articleTitle).assertIsDisplayed()
 
         // Click Back button and verify returning to list
-        composeTestRule.onNodeWithText("Kembali").performClick()
-        composeTestRule.onNodeWithText("News Reader").assertIsDisplayed()
+        composeTestRule.onNodeWithContentDescription(AppStrings.BACK_BUTTON_DESC).performClick()
+        composeTestRule.waitForIdle()
+        composeTestRule.onNodeWithText(AppStrings.APP_NAME).assertIsDisplayed()
     }
 }

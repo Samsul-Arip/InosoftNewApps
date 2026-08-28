@@ -1,7 +1,6 @@
 package com.samsul.inosoftapps.presentation.component
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -29,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.SubcomposeAsyncImage
@@ -40,12 +40,12 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 
 /**
  * Article card component with Coil 3 image loading, source badge, title, and date.
+ * Clicking the card opens the article detail screen.
  */
 @Composable
 fun ArticleCard(
     article: Article,
     onClick: () -> Unit,
-    onImageClick: ((String) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -61,6 +61,7 @@ fun ArticleCard(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
+            .testTag("article_card")
     ) {
         Column(
             modifier = Modifier
@@ -75,15 +76,10 @@ fun ArticleCard(
                         .height(180.dp)
                         .clip(RoundedCornerShape(12.dp))
                         .background(MaterialTheme.colorScheme.surfaceVariant)
-                        .then(
-                            if (onImageClick != null) {
-                                Modifier.clickable { onImageClick(article.imageUrl) }
-                            } else Modifier
-                        )
                 ) {
                     SubcomposeAsyncImage(
                         model = article.imageUrl,
-                        contentDescription = article.title,
+                        contentDescription = AppStrings.FULLSCREEN_IMAGE_DESC,
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxWidth(),
                         loading = {
@@ -241,8 +237,7 @@ private fun ArticleCardPreview_Light() {
         Surface(color = MaterialTheme.colorScheme.background) {
             ArticleCard(
                 article = SampleData.sampleArticle,
-                onClick = {},
-                onImageClick = {}
+                onClick = {}
             )
         }
     }
@@ -255,8 +250,7 @@ private fun ArticleCardPreview_Dark() {
         Surface(color = MaterialTheme.colorScheme.background) {
             ArticleCard(
                 article = SampleData.sampleArticle,
-                onClick = {},
-                onImageClick = {}
+                onClick = {}
             )
         }
     }

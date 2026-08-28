@@ -60,7 +60,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.samsul.inosoftapps.presentation.component.ArticleCard
 import com.samsul.inosoftapps.presentation.component.EmptyView
-import com.samsul.inosoftapps.presentation.component.FullScreenImageViewer
 import com.samsul.inosoftapps.presentation.component.LoadingView
 import com.samsul.inosoftapps.presentation.theme.NewsReaderTheme
 import com.samsul.inosoftapps.presentation.util.SampleData
@@ -133,8 +132,6 @@ fun ArticleListContent(
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
     listState: LazyListState = rememberLazyListState()
 ) {
-    var selectedFullImage by remember { mutableStateOf<String?>(null) }
-
     // Scroll to top when category changes
     LaunchedEffect(uiState.selectedCategory) {
         listState.scrollToItem(0)
@@ -175,7 +172,8 @@ fun ArticleListContent(
                     if (!isSearchActive) {
                         Text(
                             text = AppStrings.APP_NAME,
-                            style = MaterialTheme.typography.titleLarge
+                            style = MaterialTheme.typography.titleLarge,
+                            modifier = Modifier.testTag("app_title")
                         )
                     } else {
                         OutlinedTextField(
@@ -279,6 +277,7 @@ fun ArticleListContent(
                             selected = isSelected,
                             onClick = { onCategorySelected(catKey) },
                             label = { Text(catLabel) },
+                            modifier = Modifier.testTag("category_chip_${catKey ?: "all"}"),
                             colors = FilterChipDefaults.filterChipColors(
                                 selectedContainerColor = MaterialTheme.colorScheme.primary,
                                 selectedLabelColor = MaterialTheme.colorScheme.onPrimary
@@ -319,10 +318,7 @@ fun ArticleListContent(
                             ) { article ->
                                 ArticleCard(
                                     article = article,
-                                    onClick = { onArticleClick(article.id) },
-                                    onImageClick = { imageUrl ->
-                                        selectedFullImage = imageUrl
-                                    }
+                                    onClick = { onArticleClick(article.id) }
                                 )
                             }
 
@@ -350,14 +346,6 @@ fun ArticleListContent(
                 }
             }
         }
-    }
-
-    // FullScreen Image Dialog (Bonus Feature)
-    selectedFullImage?.let { imageUrl ->
-        FullScreenImageViewer(
-            imageUrl = imageUrl,
-            onDismiss = { selectedFullImage = null }
-        )
     }
 }
 

@@ -12,6 +12,7 @@ import com.samsul.inosoftapps.presentation.screen.ArticleListContent
 import com.samsul.inosoftapps.presentation.theme.NewsReaderTheme
 import com.samsul.inosoftapps.presentation.util.SampleData
 import com.samsul.inosoftapps.presentation.viewmodel.ArticleListUiState
+import com.samsul.inosoftapps.util.AppStrings
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -45,7 +46,7 @@ class ArticleOfflineUiTest {
         }
 
         // Verify offline banner is displayed
-        composeTestRule.onNodeWithText("Mode Offline — Menampilkan berita yang tersimpan").assertIsDisplayed()
+        composeTestRule.onNodeWithText(AppStrings.OFFLINE_BANNER_TEXT).assertIsDisplayed()
 
         // Verify cached articles are still rendered
         composeTestRule.onNodeWithText(SampleData.sampleArticle.title).assertIsDisplayed()
@@ -75,11 +76,12 @@ class ArticleOfflineUiTest {
         }
 
         // Verify empty view message is displayed
-        composeTestRule.onNodeWithText("Tidak ada berita").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Coba Lagi").assertIsDisplayed()
+        composeTestRule.onNodeWithText(AppStrings.EMPTY_ARTICLE_TITLE).assertIsDisplayed()
+        composeTestRule.onNodeWithText(AppStrings.RETRY_BUTTON).assertIsDisplayed()
 
         // Perform click on retry button
-        composeTestRule.onNodeWithText("Coba Lagi").performClick()
+        composeTestRule.onNodeWithText(AppStrings.RETRY_BUTTON).performClick()
+        composeTestRule.waitForIdle()
         assertTrue(retryClicked)
     }
 }
