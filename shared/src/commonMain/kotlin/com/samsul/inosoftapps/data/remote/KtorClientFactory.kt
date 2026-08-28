@@ -62,7 +62,7 @@ object KtorClientFactory {
             defaultRequest {
                 val apiKey = configProvider.apiKey
                 if (apiKey.isNotBlank()) {
-                    header("X-Api-Key", apiKey)
+                    header(AppConstants.HEADER_API_KEY, apiKey)
                 }
             }
         }

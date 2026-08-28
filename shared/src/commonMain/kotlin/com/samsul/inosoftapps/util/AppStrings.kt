@@ -24,10 +24,16 @@ object AppStrings {
     const val OFFLINE_BANNER_TEXT = "Mode Offline — Menampilkan berita yang tersimpan"
     const val OFFLINE_BANNER_DESC = "Mode Offline"
 
+    // Loading & Progress
+    const val LOADING_DEFAULT = "Memuat berita..."
+    const val LOADING_MESSAGE = "Memuat berita terbaru..."
+    const val LOADING_DETAIL_MESSAGE = "Memuat detail berita..."
+
     // Empty & Error States
     const val EMPTY_ARTICLE_TITLE = "Tidak ada berita"
     const val EMPTY_ARTICLE_MESSAGE = "Coba muat ulang atau periksa kata kunci pencarian Anda."
     const val ARTICLE_NOT_FOUND = "Berita tidak ditemukan"
+    const val NO_INTERNET_TITLE = "Koneksi Terputus"
     const val NO_INTERNET_MESSAGE = "Tidak ada koneksi internet. Menampilkan berita tersimpan."
     const val TIMEOUT_MESSAGE = "Koneksi time out. Coba beberapa saat lagi."
     const val SERVER_ERROR_DEFAULT = "Terjadi kesalahan pada server."
@@ -36,7 +42,37 @@ object AppStrings {
     const val UNKNOWN_ERROR = "Terjadi kesalahan."
     const val LOAD_FAILED_MESSAGE = "Gagal memuat berita terbaru."
 
-    // Media & Fullscreen Image Viewer
+    // Media & Accessibility Descriptions
     const val FULLSCREEN_IMAGE_DESC = "Gambar layar penuh"
     const val CLOSE_BUTTON_DESC = "Tutup"
+    const val AUTHOR_ICON_DESC = "Penulis"
+    const val DATE_ICON_DESC = "Tanggal publikasi"
+    const val IMAGE_PLACEHOLDER_DESC = "Placeholder gambar"
+    const val ORIGINAL_SOURCE_LABEL = "Tautan Sumber Asli (Ketuk untuk membaca di browser):"
+
+    // Category Display Labels
+    const val CATEGORY_ALL_LABEL = "Semua"
+    const val CATEGORY_BUSINESS_LABEL = "Bisnis"
+    const val CATEGORY_TECHNOLOGY_LABEL = "Teknologi"
+    const val CATEGORY_SPORTS_LABEL = "Olahraga"
+    const val CATEGORY_HEALTH_LABEL = "Kesehatan"
+    const val CATEGORY_SCIENCE_LABEL = "Sains"
+    const val CATEGORY_ENTERTAINMENT_LABEL = "Hiburan"
+
+    /**
+     * Formats empty search results message with given query.
+     */
+    fun searchEmptyMessage(query: String): String = "Tidak ada berita dengan kata kunci '$query'"
+
+    /**
+     * Formats API error message with fallback to error code or default server error message.
+     */
+    fun formatApiErrorMessage(message: String?, code: String?): String {
+        if (!message.isNullOrBlank()) return message
+        return if (!code.isNullOrBlank()) {
+            "Gagal memuat berita dari server (Kode: $code)"
+        } else {
+            SERVER_ERROR_DEFAULT
+        }
+    }
 }

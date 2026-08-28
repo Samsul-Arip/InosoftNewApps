@@ -10,6 +10,7 @@ import com.samsul.inosoftapps.domain.model.DomainError
 import com.samsul.inosoftapps.domain.model.DomainException
 import com.samsul.inosoftapps.domain.repository.ArticleRepository
 import com.samsul.inosoftapps.util.AppConstants
+import com.samsul.inosoftapps.util.AppStrings
 import io.ktor.client.network.sockets.SocketTimeoutException
 import io.ktor.client.plugins.HttpRequestTimeoutException
 import io.ktor.client.plugins.ResponseException
@@ -50,7 +51,7 @@ class ArticleRepositoryImpl(
                 pageSize = AppConstants.DEFAULT_PAGE_SIZE
             )
 
-            if (response.status == "ok") {
+            if (response.status == AppConstants.API_STATUS_OK) {
                 val currentTime = Clock.System.now().toEpochMilliseconds()
                 val rawArticles = response.articles.orEmpty()
                 val entities = rawArticles.toEntityList(category = category, cachedAt = currentTime)
@@ -74,7 +75,7 @@ class ArticleRepositoryImpl(
             } else {
                 val serverError = DomainError.ServerError(
                     code = null,
-                    message = response.message ?: "Failed to fetch headlines (Code: ${response.code})"
+                    message = AppStrings.formatApiErrorMessage(response.message, response.code)
                 )
                 Result.failure(DomainException(serverError))
             }
@@ -114,12 +115,10 @@ class ArticleRepositoryImpl(
 
             else -> {
                 val message = e.message.orEmpty()
-                if (message.contains("Unable to resolve host", ignoreCase = true) ||
-                    message.contains("No address associated", ignoreCase = true) ||
-                    message.contains("ConnectException", ignoreCase = true) ||
-                    message.contains("Network is unreachable", ignoreCase = true) ||
-                    message.contains("connection abort", ignoreCase = true)
-                ) {
+                val isNetworkError = AppConstants.NETWORK_ERROR_KEYWORDS.any { keyword ->
+                    message.contains(keyword, ignoreCase = true)
+                }
+                if (isNetworkError) {
                     DomainError.NoInternet
                 } else {
                     DomainError.Unknown(throwable = e, message = e.message)

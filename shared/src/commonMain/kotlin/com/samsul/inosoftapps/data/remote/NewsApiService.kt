@@ -61,7 +61,7 @@ class KtorNewsApiService(
 
         // Smart Fallback: If country returns empty articles or error (e.g. NewsAPI 'id' returning 0 articles),
         // automatically fallback to global/US headlines so the user always receives fresh news.
-        if (targetCountry != configProvider.fallbackCountry && (primaryResponse.articles.isNullOrEmpty() || primaryResponse.status != "ok")) {
+        if (targetCountry != configProvider.fallbackCountry && (primaryResponse.articles.isNullOrEmpty() || primaryResponse.status != AppConstants.API_STATUS_OK)) {
             val fallbackResponse = fetchHeadlines(
                 country = configProvider.fallbackCountry,
                 category = category,
@@ -82,16 +82,16 @@ class KtorNewsApiService(
         page: Int,
         pageSize: Int
     ): NewsResponseDto {
-        return client.get("$baseUrl/top-headlines") {
-            parameter("country", country)
+        return client.get("$baseUrl/${AppConstants.ENDPOINT_TOP_HEADLINES}") {
+            parameter(AppConstants.PARAM_COUNTRY, country)
             if (!category.isNullOrBlank()) {
-                parameter("category", category)
+                parameter(AppConstants.PARAM_CATEGORY, category)
             }
-            parameter("page", page)
-            parameter("pageSize", pageSize)
+            parameter(AppConstants.PARAM_PAGE, page)
+            parameter(AppConstants.PARAM_PAGE_SIZE, pageSize)
             val apiKey = configProvider.apiKey
             if (apiKey.isNotBlank()) {
-                parameter("apiKey", apiKey)
+                parameter(AppConstants.PARAM_API_KEY, apiKey)
             }
         }.body()
     }
@@ -101,14 +101,14 @@ class KtorNewsApiService(
         page: Int,
         pageSize: Int
     ): NewsResponseDto {
-        return client.get("$baseUrl/everything") {
-            parameter("q", query)
-            parameter("sortBy", "publishedAt")
-            parameter("page", page)
-            parameter("pageSize", pageSize)
+        return client.get("$baseUrl/${AppConstants.ENDPOINT_EVERYTHING}") {
+            parameter(AppConstants.PARAM_QUERY, query)
+            parameter(AppConstants.PARAM_SORT_BY, AppConstants.SORT_BY_PUBLISHED_AT)
+            parameter(AppConstants.PARAM_PAGE, page)
+            parameter(AppConstants.PARAM_PAGE_SIZE, pageSize)
             val apiKey = configProvider.apiKey
             if (apiKey.isNotBlank()) {
-                parameter("apiKey", apiKey)
+                parameter(AppConstants.PARAM_API_KEY, apiKey)
             }
         }.body()
     }

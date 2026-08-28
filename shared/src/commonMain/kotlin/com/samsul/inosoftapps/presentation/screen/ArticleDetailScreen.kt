@@ -126,7 +126,7 @@ fun ArticleDetailContent(
         ) {
             when {
                 uiState.isLoading -> {
-                    LoadingView(message = "Memuat detail berita...")
+                    LoadingView(message = AppStrings.LOADING_DETAIL_MESSAGE)
                 }
                 uiState.article == null -> {
                     EmptyView(
@@ -207,7 +207,7 @@ fun ArticleDetailContent(
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.Person,
-                                        contentDescription = "Author",
+                                        contentDescription = AppStrings.AUTHOR_ICON_DESC,
                                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                         modifier = Modifier.size(16.dp)
                                     )
@@ -230,7 +230,7 @@ fun ArticleDetailContent(
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.DateRange,
-                                        contentDescription = "Date",
+                                        contentDescription = AppStrings.DATE_ICON_DESC,
                                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                         modifier = Modifier.size(16.dp)
                                     )
@@ -280,7 +280,7 @@ fun ArticleDetailContent(
                                         ) {
                                             Icon(
                                                 imageVector = Icons.Default.Info,
-                                                contentDescription = "Placeholder",
+                                                contentDescription = AppStrings.IMAGE_PLACEHOLDER_DESC,
                                                 tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                                                 modifier = Modifier.size(48.dp)
                                             )
@@ -333,7 +333,7 @@ fun ArticleDetailContent(
                             ) {
                                 Column(modifier = Modifier.padding(14.dp)) {
                                     Text(
-                                        text = "Tautan Sumber Asli (Ketuk untuk membaca di browser):",
+                                        text = AppStrings.ORIGINAL_SOURCE_LABEL,
                                         style = MaterialTheme.typography.labelSmall,
                                         color = MaterialTheme.colorScheme.primary
                                     )

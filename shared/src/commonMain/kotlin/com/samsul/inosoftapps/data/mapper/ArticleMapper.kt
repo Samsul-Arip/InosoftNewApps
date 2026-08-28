@@ -3,6 +3,7 @@ package com.samsul.inosoftapps.data.mapper
 import com.samsul.inosoftapps.data.local.entity.ArticleEntity
 import com.samsul.inosoftapps.data.remote.dto.ArticleDto
 import com.samsul.inosoftapps.domain.model.Article
+import com.samsul.inosoftapps.util.AppConstants
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -39,7 +40,7 @@ fun ArticleDto.toEntity(category: String? = null, cachedAt: Long = 0L): ArticleE
     val articleUrl = url?.trim()
     val articleTitle = title?.trim()
 
-    if (articleUrl.isNullOrBlank() || articleTitle.isNullOrBlank() || articleTitle == "[Removed]") {
+    if (articleUrl.isNullOrBlank() || articleTitle.isNullOrBlank() || articleTitle == AppConstants.REMOVED_ARTICLE_TITLE) {
         return null
     }
 
@@ -101,7 +102,7 @@ fun ArticleDto.toDomain(category: String? = null): Article? {
     val articleUrl = url?.trim()
     val articleTitle = title?.trim()
 
-    if (articleUrl.isNullOrBlank() || articleTitle.isNullOrBlank() || articleTitle == "[Removed]") {
+    if (articleUrl.isNullOrBlank() || articleTitle.isNullOrBlank() || articleTitle == AppConstants.REMOVED_ARTICLE_TITLE) {
         return null
     }
 

@@ -1,6 +1,15 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.util.Properties
 
+// Build script configuration constants
+val propNewsApiKey = "NEWS_API_KEY"
+val propNewsBaseUrl = "NEWS_BASE_URL"
+val defaultNewsBaseUrl = "DEFAULT_BASE_URL_HERE"
+val defaultApiKeyFallback = "API_KEY_HERE"
+val defaultCountryCode = "id"
+val taskGenerateBuildConfig = "generateBuildConfig"
+val iosFrameworkName = "Shared"
+
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidLibrary)
@@ -19,13 +28,13 @@ val localProperties = Properties().apply {
     }
 }
 
-val newsApiKey: String = (localProperties.getProperty("NEWS_API_KEY")
-    ?: System.getenv("NEWS_API_KEY")
-    ?: "API_KEY_HERE").trim()
+val newsApiKey: String = (localProperties.getProperty(propNewsApiKey)
+    ?: System.getenv(propNewsApiKey)
+    ?: defaultApiKeyFallback).trim()
 
-val newsBaseUrl: String = (localProperties.getProperty("NEWS_BASE_URL")
-    ?: System.getenv("NEWS_BASE_URL")
-    ?: "https://newsapi.org/v2").trim()
+val newsBaseUrl: String = (localProperties.getProperty(propNewsBaseUrl)
+    ?: System.getenv(propNewsBaseUrl)
+    ?: defaultNewsBaseUrl).trim()
 
 val generatedBuildConfigDir = layout.buildDirectory.dir("generated/source/buildConfig/commonMain/kotlin")
 
@@ -35,6 +44,9 @@ abstract class GenerateBuildConfigTask : DefaultTask() {
 
     @get:Input
     abstract val baseUrl: Property<String>
+
+    @get:Input
+    abstract val defaultCountry: Property<String>
 
     @get:OutputDirectory
     abstract val outputDir: DirectoryProperty
@@ -55,16 +67,17 @@ abstract class GenerateBuildConfigTask : DefaultTask() {
             object BuildKonfig {
                 const val BASE_URL: String = "${baseUrl.get()}"
                 const val API_KEY: String = "${apiKey.get()}"
-                const val DEFAULT_COUNTRY: String = "id"
+                const val DEFAULT_COUNTRY: String = "${defaultCountry.get()}"
             }
             """.trimIndent()
         )
     }
 }
 
-val generateBuildConfigTask = tasks.register<GenerateBuildConfigTask>("generateBuildConfig") {
+val generateBuildConfigTask = tasks.register<GenerateBuildConfigTask>(taskGenerateBuildConfig) {
     apiKey.set(newsApiKey)
     baseUrl.set(newsBaseUrl)
+    defaultCountry.set(defaultCountryCode)
     outputDir.set(generatedBuildConfigDir)
 }
 
@@ -88,7 +101,7 @@ kotlin {
         iosSimulatorArm64()
     ).forEach { iosTarget ->
         iosTarget.binaries.framework {
-            baseName = "Shared"
+            baseName = iosFrameworkName
             isStatic = true
         }
     }
@@ -174,7 +187,7 @@ kotlin {
 tasks.matching {
     it.name.startsWith("compile") || it.name.startsWith("ksp") || it.name.startsWith("generate")
 }.configureEach {
-    if (name != "generateBuildConfig") {
+    if (name != taskGenerateBuildConfig) {
         dependsOn(generateBuildConfigTask)
     }
 }

@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.samsul.inosoftapps.presentation.theme.NewsReaderTheme
+import com.samsul.inosoftapps.util.AppStrings
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 /**
@@ -25,7 +26,7 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 @Composable
 fun LoadingView(
     modifier: Modifier = Modifier,
-    message: String? = "Memuat berita..."
+    message: String? = AppStrings.LOADING_DEFAULT
 ) {
     Box(
         modifier = modifier
@@ -61,7 +62,7 @@ fun LoadingView(
 private fun LoadingViewPreview_Light() {
     NewsReaderTheme(darkTheme = false) {
         Surface(color = MaterialTheme.colorScheme.background) {
-            LoadingView(message = "Memuat berita terbaru...")
+            LoadingView(message = AppStrings.LOADING_MESSAGE)
         }
     }
 }
@@ -71,7 +72,7 @@ private fun LoadingViewPreview_Light() {
 private fun LoadingViewPreview_Dark() {
     NewsReaderTheme(darkTheme = true) {
         Surface(color = MaterialTheme.colorScheme.background) {
-            LoadingView(message = "Memuat berita terbaru...")
+            LoadingView(message = AppStrings.LOADING_MESSAGE)
         }
     }
 }

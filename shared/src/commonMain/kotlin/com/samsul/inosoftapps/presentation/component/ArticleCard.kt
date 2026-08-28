@@ -35,6 +35,7 @@ import coil3.compose.SubcomposeAsyncImage
 import com.samsul.inosoftapps.domain.model.Article
 import com.samsul.inosoftapps.presentation.theme.NewsReaderTheme
 import com.samsul.inosoftapps.presentation.util.SampleData
+import com.samsul.inosoftapps.util.AppStrings
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 /**
@@ -104,7 +105,7 @@ fun ArticleCard(
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Info,
-                                    contentDescription = "Placeholder",
+                                    contentDescription = AppStrings.IMAGE_PLACEHOLDER_DESC,
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                                     modifier = Modifier.size(40.dp)
                                 )
@@ -191,7 +192,7 @@ fun ArticleCard(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Person,
-                            contentDescription = "Author",
+                            contentDescription = AppStrings.AUTHOR_ICON_DESC,
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(14.dp)
                         )
@@ -214,7 +215,7 @@ fun ArticleCard(
                     ) {
                         Icon(
                             imageVector = Icons.Default.DateRange,
-                            contentDescription = "Date",
+                            contentDescription = AppStrings.DATE_ICON_DESC,
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(14.dp)
                         )
