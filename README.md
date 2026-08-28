@@ -12,7 +12,7 @@
 ---
 
 ## 🎯 Objective
-Membangun aplikasi pembaca berita modern (*production-minded News Reader App*) menggunakan **Kotlin Multiplatform (KMP)** dengan dukungan **Offline-First**, pengujian otomatis (**Automated Testing**), dan alur kerja pengembangan berbantuan AI (**AI-Assisted Development Workflow**) menggunakan kapabilitas *Agentic AI* di Android Studio.
+Membangun aplikasi pembaca berita modern (*production-minded News Reader App*) menggunakan **Kotlin Multiplatform (KMP)** dengan dukungan **Offline-First**, pengujian otomatis (**Automated Testing**), dan alur kerja pengembangan berbantuan AI (**AI-Assisted Development Workflow**) menggunakan kapabilitas *Agentic AI* di Antigravity.
 
 Solusi ini dirancang untuk menunjukkan:
 1. Kemampuan rekayasa Android & Kotlin Multiplatform tingkat lanjut.
