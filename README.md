@@ -126,18 +126,25 @@ Aplikasi menerapkan konsep **Offline-First Single Source of Truth (SSOT)**:
 
 ```mermaid
 graph TD
-    UI[Compose UI Presentation] <-->|Observe StateFlow| VM[ArticleListViewModel]
-    VM <-->|Invoke| UC[Article UseCases]
-    UC <-->|Query / Mutate| REPO[ArticleRepositoryImpl]
-    
-    subgraph "Single Source of Truth (SSOT)"
-        REPO -->|1. Write Cache Atomically| ROOM[(Room KMP Database)]
-        ROOM -->|2. Emit Updates via Flow| REPO
+    subgraph "Presentation Layer"
+        UI["📱 Compose Multiplatform UI"] <-->|"1. Observe StateFlow"| VM["ArticleListViewModel"]
     end
-    
+
+    subgraph "Domain Layer"
+        VM <-->|"2. Execute UseCases"| UC["Article UseCases (Get / Refresh / Search)"]
+        UC <-->|"3. Domain Contract"| REPO["ArticleRepositoryImpl (SSOT Coordinator)"]
+    end
+
+    subgraph "Local Persistence (Single Source of Truth)"
+        REPO -->|"7. Write Cache Atomically (@Transaction)"| ROOM[("🗄️ Room KMP Database (ArticleDao)")]
+        ROOM -->|"8. Emit Reactive Updates via Flow"| REPO
+    end
+
     subgraph "Remote Data Layer"
-        REPO -.->|3. Refresh / Fetch| KTOR[Ktor 3 HTTP Client]
-        KTOR -.->|4. Request| API[NewsAPI.org REST API]
+        REPO -->|"4. Call Remote Service"| KTOR["🌐 Ktor 3 HTTP Client (NewsApiService)"]
+        KTOR -->|"5. HTTP GET Request"| API["☁️ NewsAPI.org REST API"]
+        API -.->|"6a. JSON Payload Response"| KTOR
+        KTOR -.->|"6b. Return NewsResponseDto"| REPO
     end
 ```
 
