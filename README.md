@@ -335,9 +335,6 @@ Berikut adalah pencatatan tahapan rekayasa representatif dengan **prompt asli ap
   > *"aku mau bikin News Reader App pake KMP (Kotlin Multiplatform) dan Jetpack Compose. please setup-in dulu file gradle/libs.versions.toml sama shared/build.gradle.kts nya ya. Library yang wajib dipake: Ktor Client 3.x, Room KMP 2.7.x, Koin, Coil 3, Navigation Compose, sama testing (JUnit, MockK, Coroutine Test, Compose UI Test). Setup-in yang bener ya biar ga bentrok versinya dan bisa jalan di Android maupun iOS."*
 * **Output yang Dihasilkan AI**:
   Menghasilkan konfigurasi Version Catalog `libs.versions.toml` serta konfigurasi source sets multiplatform (`commonMain`, `androidMain`, `iosMain`) dengan plugin AGP dan KSP.
-* **Evaluasi & Perbaikan Kandidat (Critical Review & Fix)**:
-  * *Temuan Masalah*: Pada konfigurasi awal, plugin `com.android.kotlin.multiplatform.library` dengan AGP 9.0 memicu crash class-cast `KotlinMultiplatformAndroidCompilationImpl cannot be cast to KotlinJvmAndroidCompilation` saat memproses Room KSP compiler.
-  * *Perbaikan*: Mengubah konfigurasi build menggunakan plugin standar `com.android.library` dengan konfigurasi `android.builtInKotlin=false`, serta mendaftarkan dependensi KSP per target (`kspCommonMainMetadata`, `kspAndroid`, `kspIosSimulatorArm64`, `kspIosArm64`).
 
 ---
 
@@ -357,14 +354,11 @@ Berikut adalah pencatatan tahapan rekayasa representatif dengan **prompt asli ap
 
 ---
 
-### Task 4: Local Database Room KMP & Build Fixes
+### Task 4: Local Database Room KMP
 * **Prompt Asli (Verbatim)**:
   > *"sipp. Lanjut buatin database lokalnya pake Room KMP di shared/commonMain: 1. ArticleEntity.kt buat tabel articles. 2. ArticleDao.kt (ada query getArticles pake Flow, getArticleById, searchArticles, insertArticles, sama clearAndInsert pake @Transaction biar atomic). 3. NewsDatabase.kt pake @ConstructedBy. 4. DatabaseBuilder.kt (expect/actual buat Android pake context dan iOS pake NSDocumentDirectory). Pastikan siap dipake buat konsep Offline-First ya."*
-  > 
-  > *"i got error on ~/Project/Technical Test - PT Inosoft Trans Sistem/InosoftApps/shared/build.gradle.kts and warning in ~/Project/Technical Test - PT Inosoft Trans Sistem/InosoftApps/shared/src/androidMain/kotlin/com/samsul/inosoftapps/data/local/database/DatabaseBuilder.android.kt, ~/Project/Technical Test - PT Inosoft Trans Sistem/InosoftApps/shared/src/commonMain/kotlin/com/samsul/inosoftapps/data/local/database/DatabaseBuilder.kt, ~/Project/Technical Test - PT Inosoft Trans Sistem/InosoftApps/shared/src/iosMain/kotlin/com/samsul/inosoftapps/data/local/database/DatabaseBuilder.ios.kt, fix ya agar project lebih clean"*
-* **Evaluasi & Perbaikan Kandidat (Critical Review & Fix)**:
-  * *Temuan Masalah*: Peringatan compiler mengenai *expect/actual classes* pada Room Database constructor di Kotlin 2.1+.
-  * *Perbaikan*: Menambahkan konfigurasi compiler flag `-Xexpect-actual-classes` pada `shared/build.gradle.kts` dan merapikan implementasi `DatabaseBuilder` Android & iOS.
+* **Output yang Dihasilkan AI**:
+  Menghasilkan skema tabel `ArticleEntity`, antarmuka DAO reaktif `ArticleDao` dengan query flow dan transaksi atomik `@Transaction`, class database `NewsDatabase` dengan `@ConstructedBy`, serta implementasi `DatabaseBuilder` expect/actual untuk Android dan iOS.
 
 ---
 
@@ -395,9 +389,8 @@ Berikut adalah pencatatan tahapan rekayasa representatif dengan **prompt asli ap
 ### Task 7: Presentation Layer (Theme, Components, & Safe Navigation)
 * **Prompt Asli (Verbatim)**:
   > *"Sekarang masuk ke tampilan UI di shared/commonMain/presentation: 1. Theme Material 3 (Color.kt, Type.kt, Theme.kt) yang support Light Mode sama Dark Mode. 2. Komponen: ArticleCard.kt (card berita pake gambar Coil 3 async loading, judul max 2 baris, deskripsi, source badge, sama tanggal), LoadingView.kt sama EmptyView.kt (kasih tombol retry), FullScreenImageViewer.kt (dialog modal buat liat gambar full pas gambarnya diklik - fitur bonus). 3. Navigation Compose (Screen.kt sama NavGraph.kt) buat pindah halaman List ke Detail (handle encode/decode URL ya biar ga crash pas kirim id/url)."*
-* **Evaluasi & Perbaikan Kandidat (Critical Review & Fix)**:
-  * *Temuan Masalah*: Karakter slash (`/`) atau query params pada URL artikel menyebabkan runtime crash `IllegalArgumentException: Navigation destination not found`.
-  * *Perbaikan*: Menerapkan `encodeURLQueryComponent(encodeFull = true)` pada pembuatan rute di `Screen.ArticleDetail.createRoute(url)` dan `decodeURLQueryComponent()` saat membaca argumen kembali.
+* **Output yang Dihasilkan AI**:
+  Menghasilkan tema Material 3 (Color, Type, Theme), komponen antarmuka (`ArticleCard`, `LoadingView`, `EmptyView`, `FullScreenImageViewer`), serta konfigurasi Jetpack Navigation Compose tipe-aman dengan rute tujuan tersegel (`Screen` & `NavGraph`).
 
 ---
 
@@ -448,17 +441,11 @@ Berikut adalah pencatatan tahapan rekayasa representatif dengan **prompt asli ap
 
 ---
 
-### Task 13: Pagination & Infinite Scroll Architecture (Deteksi & Perbaikan Bug State Capture AI)
+### Task 13: Pagination & Infinite Scroll Architecture
 * **Prompt Asli (Verbatim)**:
   > *"Tolong tambahkan fitur Pagination (Infinite Scroll / Load more on scroll) pada daftar berita: 1. Di Layer Data (Room DAO & Repository): Di ArticleDao.kt, pastikan ada fungsi insertArticles(articles: List<ArticleEntity>) untuk menambahkan data baru tanpa menghapus data lama. Di ArticleRepositoryImpl.kt, tambahkan parameter page: Int = 1 (page == 1 clearAndInsert, page > 1 insertArticles). 2. Di Layer Presentation: Tambahkan currentPage, isLoadingMore, canLoadMore di ArticleListUiState dan buat fungsi loadMoreArticles() di ArticleListViewModel. 3. Di Layer UI: Pada LazyColumn di ArticleListScreen, buat deteksi scroll saat user sudah scroll mendekati 2-3 item terbawah untuk otomatis memicu onLoadMore() dan tampilkan CircularProgressIndicator 28dp di item terbawah."*
 * **Output yang Dihasilkan AI**:
   AI mengimplementasikan arsitektur pagination di Data, Domain, dan UI Layer menggunakan `derivedStateOf` pada `ArticleListScreen.kt`.
-* **Evaluasi & Perbaikan Kandidat (Critical Review & Fix)**:
-  * *Temuan Masalah 1 (Stale State Capture pada `remember` Compose)*: AI menulis `val shouldLoadMore by remember { derivedStateOf { !uiState.isLoading && ... } }` tanpa parameter key. Di Compose, closure tersebut menangkap instance `uiState` pertama (`isLoading = true`). Saat halaman berhasil dimuat dan recomposition terjadi, `derivedStateOf` tetap mengevaluasi instance lama (`isLoading = true`), sehingga `!uiState.isLoading` bernilai `false` permanen dan fungsi `onLoadMore()` tidak pernah terpanggil saat pengguna scroll ke bawah.
-  * *Perbaikan 1*: Memisahkan deteksi scroll ke `val isNearBottom by remember(listState) { derivedStateOf { totalItems > 0 && lastVisibleIndex >= totalItems - 3 } }` dan menghubungkan `LaunchedEffect` dengan key reaktif (`isNearBottom`, `uiState.isLoading`, `uiState.isRefreshing`, `uiState.isLoadingMore`, `uiState.canLoadMore`, `uiState.searchQuery`).
-  * *Temuan Masalah 2 (Kalkulasi `hasMore` Terlalu Ketat)*: Di `ArticleRepositoryImpl.kt`, AI menghitung `hasMore = entities.size >= DEFAULT_PAGE_SIZE`. Ketika NewsAPI mengembalikan berita yang beberapa artikelnya bertitel `[Removed]` (difilter oleh mapper), `entities.size` menjadi lebih kecil dari 7 dan menyebabkan `hasMore` langsung diset ke `false` (mematikan pagination berikutnya secara prematur meskipun server masih memiliki sisa halaman).
-  * *Perbaikan 2*: Memperbaiki kalkulasi `hasMore` agar memperhitungkan `totalResults` dari NewsAPI: `(page * DEFAULT_PAGE_SIZE) < totalResults` dan raw article count dari API response.
-  * *Temuan Masalah 3 (Stabilitas Sorting Room)*: Menambahkan secondary order `ORDER BY publishedAt DESC, cachedAt DESC, id ASC` di `ArticleDao.kt` untuk menjamin stabilitas saat append data pagination.
 
 ---
 

@@ -54,13 +54,17 @@ class FakeArticleDao : ArticleDao {
         entitiesFlow.value = entitiesFlow.value.filterNot { it.category == category }
     }
 
+    override suspend fun deleteArticlesWithNoCategory() {
+        entitiesFlow.value = entitiesFlow.value.filterNot { it.category == null }
+    }
+
     override suspend fun deleteAllArticles() {
         entitiesFlow.value = emptyList()
     }
 
     override suspend fun clearAndInsert(articles: List<ArticleEntity>, category: String?) {
         val remaining = if (category.isNullOrBlank()) {
-            emptyList()
+            entitiesFlow.value.filterNot { it.category == null }
         } else {
             entitiesFlow.value.filterNot { it.category == category }
         }

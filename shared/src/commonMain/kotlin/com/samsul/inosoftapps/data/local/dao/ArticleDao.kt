@@ -66,6 +66,12 @@ interface ArticleDao {
     suspend fun deleteArticlesByCategory(category: String)
 
     /**
+     * Deletes all articles with no category (the 'Semua' feed).
+     */
+    @Query("DELETE FROM articles WHERE category IS NULL")
+    suspend fun deleteArticlesWithNoCategory()
+
+    /**
      * Deletes all cached articles.
      */
     @Query("DELETE FROM articles")
@@ -73,14 +79,14 @@ interface ArticleDao {
 
     /**
      * Atomically clears and inserts articles.
-     * Preserves bookmarked status if any existed previously.
+     * Preserves other categories when clearing the default 'Semua' category.
      */
     @Transaction
     suspend fun clearAndInsert(articles: List<ArticleEntity>, category: String? = null) {
         if (category != null) {
             deleteArticlesByCategory(category)
         } else {
-            deleteAllArticles()
+            deleteArticlesWithNoCategory()
         }
         insertArticles(articles)
     }

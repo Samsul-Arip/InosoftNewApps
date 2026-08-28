@@ -62,6 +62,10 @@ class FakeArticleDaoImpl : ArticleDao {
         db.value = db.value.filter { it.category != category }
     }
 
+    override suspend fun deleteArticlesWithNoCategory() {
+        db.value = db.value.filter { it.category != null }
+    }
+
     override suspend fun deleteAllArticles() {
         db.value = emptyList()
     }
@@ -71,7 +75,7 @@ class FakeArticleDaoImpl : ArticleDao {
         if (category != null) {
             deleteArticlesByCategory(category)
         } else {
-            deleteAllArticles()
+            deleteArticlesWithNoCategory()
         }
         db.value = articles
     }
