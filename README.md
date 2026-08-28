@@ -64,7 +64,7 @@ Seluruh dependensi yang disyaratkan dalam dokumen teknis telah dipenuhi 100%:
 | **Image Loading** | Coil 3 Multiplatform | `3.1.0` | Asynchronous image loading & disk/memory caching |
 | **Testing** | JUnit + MockK + Turbine + Compose UI | `4.13.2` / `1.13.17` | Pengujian komprehensif (Unit Test, Flow Test, UI Instrumentation) |
 | **Build Tooling** | Gradle Kotlin DSL | `8.11.1` / `AGP 8.8.0` | Konfigurasi Version Catalog (`libs.versions.toml`) & Gradle Kotlin DSL |
-| **AI Development**| Android Studio Agentic AI | Gemini / Agent Mode | Digunakan untuk scaffolding, refactoring, debugging, dan testing |
+| **AI Development**| Antigravity Agentic AI | Gemini / Agent Mode | Digunakan untuk scaffolding, refactoring, debugging, dan testing |
 
 ---
 
