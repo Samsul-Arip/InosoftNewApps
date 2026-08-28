@@ -47,10 +47,11 @@ class ArticleListViewModel(
     val uiState: StateFlow<ArticleListUiState> = _uiState.asStateFlow()
 
     private var observeJob: Job? = null
+    private var refreshJob: Job? = null
 
     init {
         loadArticles()
-        refreshArticles(isInitial = true)
+        refreshArticles()
     }
 
     /**
@@ -64,12 +65,13 @@ class ArticleListViewModel(
                 searchQuery = "",
                 articles = emptyList(),
                 isLoading = true,
+                isRefreshing = false,
                 currentPage = 1,
                 canLoadMore = true
             )
         }
-        loadArticles(category)
         refreshArticles(category)
+        loadArticles(category)
     }
 
     /**
@@ -78,13 +80,18 @@ class ArticleListViewModel(
     fun loadArticles(category: String? = _uiState.value.selectedCategory) {
         observeJob?.cancel()
         observeJob = viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = it.articles.isEmpty()) }
             getArticlesUseCase(category)
                 .catch { e ->
                     _uiState.update { it.copy(isLoading = false, errorMessage = e.message) }
                 }
                 .collectLatest { articles ->
-                    _uiState.update { it.copy(articles = articles, isLoading = false) }
+                    _uiState.update { current ->
+                        val isNetworkLoading = refreshJob?.isActive == true
+                        current.copy(
+                            articles = articles,
+                            isLoading = if (articles.isNotEmpty()) false else isNetworkLoading
+                        )
+                    }
                 }
         }
     }
@@ -95,13 +102,14 @@ class ArticleListViewModel(
     fun searchArticles(query: String) {
         _uiState.update { it.copy(searchQuery = query) }
         observeJob?.cancel()
+        refreshJob?.cancel()
         if (query.isBlank()) {
             loadArticles(_uiState.value.selectedCategory)
             return
         }
 
         observeJob = viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
+            _uiState.update { it.copy(isLoading = true, isRefreshing = false) }
             searchArticlesUseCase(query)
                 .catch { e ->
                     _uiState.update { it.copy(isLoading = false, errorMessage = e.message) }
@@ -115,11 +123,18 @@ class ArticleListViewModel(
     /**
      * Triggers a remote refresh from Ktor NewsAPI into Room DB for page 1.
      */
-    fun refreshArticles(category: String? = _uiState.value.selectedCategory, isInitial: Boolean = false) {
-        viewModelScope.launch {
+    fun refreshArticles(category: String? = _uiState.value.selectedCategory) {
+        refreshJob?.cancel()
+        refreshJob = viewModelScope.launch {
+            val hasCachedArticles = _uiState.value.articles.isNotEmpty()
             _uiState.update {
-                if (isInitial && it.articles.isEmpty()) it.copy(isLoading = true, errorMessage = null, currentPage = 1, canLoadMore = true)
-                else it.copy(isRefreshing = true, errorMessage = null, currentPage = 1, canLoadMore = true)
+                it.copy(
+                    isLoading = !hasCachedArticles,
+                    isRefreshing = hasCachedArticles,
+                    errorMessage = null,
+                    currentPage = 1,
+                    canLoadMore = true
+                )
             }
 
             val result = refreshArticlesUseCase(category = category, page = 1)

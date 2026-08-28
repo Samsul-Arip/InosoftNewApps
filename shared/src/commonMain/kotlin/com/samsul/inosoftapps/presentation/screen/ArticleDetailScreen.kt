@@ -43,6 +43,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -54,6 +55,7 @@ import com.samsul.inosoftapps.presentation.theme.NewsReaderTheme
 import com.samsul.inosoftapps.presentation.util.SampleData
 import com.samsul.inosoftapps.presentation.viewmodel.ArticleDetailUiState
 import com.samsul.inosoftapps.presentation.viewmodel.ArticleDetailViewModel
+import com.samsul.inosoftapps.util.AppConstants
 import com.samsul.inosoftapps.util.AppStrings
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
@@ -100,11 +102,15 @@ fun ArticleDetailContent(
                 title = {
                     Text(
                         text = AppStrings.ARTICLE_DETAIL_TITLE,
-                        style = MaterialTheme.typography.titleLarge
+                        style = MaterialTheme.typography.titleLarge,
+                        modifier = Modifier.testTag(AppConstants.TestTags.DETAIL_TITLE)
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = onBackClick) {
+                    IconButton(
+                        onClick = onBackClick,
+                        modifier = Modifier.testTag(AppConstants.TestTags.BACK_BUTTON)
+                    ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = AppStrings.BACK_BUTTON_DESC
@@ -149,7 +155,8 @@ fun ArticleDetailContent(
                         Text(
                             text = article.title,
                             style = MaterialTheme.typography.headlineMedium,
-                            color = MaterialTheme.colorScheme.onBackground
+                            color = MaterialTheme.colorScheme.onBackground,
+                            modifier = Modifier.testTag(AppConstants.TestTags.DETAIL_ARTICLE_TITLE)
                         )
 
                         Spacer(modifier = Modifier.height(12.dp))

@@ -63,4 +63,22 @@ object AppConstants {
         "Network is unreachable",
         "connection abort"
     )
+
+    // Centralized UI Test Tags (Prevents hardcoded string literals across composables)
+    object TestTags {
+        const val APP_TITLE: String = "app_title"
+        const val SEARCH_TEXT_FIELD: String = "search_text_field"
+        const val CLEAR_SEARCH_BUTTON: String = "clear_search_button"
+        const val SEARCH_TOGGLE_BUTTON: String = "search_toggle_button"
+        const val REFRESH_BUTTON: String = "refresh_button"
+        const val OFFLINE_BANNER: String = "offline_banner"
+        const val CATEGORY_CHIPS_ROW: String = "category_chips_row"
+        const val ARTICLE_CARD: String = "article_card"
+        const val ARTICLE_TITLE: String = "article_title"
+        const val DETAIL_TITLE: String = "detail_title"
+        const val DETAIL_ARTICLE_TITLE: String = "detail_article_title"
+        const val BACK_BUTTON: String = "back_button"
+
+        fun categoryChip(category: String?): String = "category_chip_${category ?: "all"}"
+    }
 }

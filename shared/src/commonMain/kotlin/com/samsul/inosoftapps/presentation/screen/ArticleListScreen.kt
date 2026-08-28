@@ -57,6 +57,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.samsul.inosoftapps.presentation.component.ArticleCard
 import com.samsul.inosoftapps.presentation.component.EmptyView
@@ -172,7 +173,8 @@ fun ArticleListContent(
                     if (!isSearchActive) {
                         Text(
                             text = AppStrings.APP_NAME,
-                            style = MaterialTheme.typography.titleLarge
+                            style = MaterialTheme.typography.titleLarge,
+                            modifier = Modifier.testTag(AppConstants.TestTags.APP_TITLE)
                         )
                     } else {
                         OutlinedTextField(
@@ -182,7 +184,10 @@ fun ArticleListContent(
                             singleLine = true,
                             trailingIcon = {
                                 if (uiState.searchQuery.isNotEmpty()) {
-                                    IconButton(onClick = onClearSearch) {
+                                    IconButton(
+                                        onClick = onClearSearch,
+                                        modifier = Modifier.testTag(AppConstants.TestTags.CLEAR_SEARCH_BUTTON)
+                                    ) {
                                         Icon(Icons.Default.Close, contentDescription = AppStrings.CLEAR_SEARCH_DESC)
                                     }
                                 }
@@ -195,18 +200,25 @@ fun ArticleListContent(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(end = 8.dp)
+                                .testTag(AppConstants.TestTags.SEARCH_TEXT_FIELD)
                         )
                     }
                 },
                 actions = {
-                    IconButton(onClick = onSearchToggled) {
+                    IconButton(
+                        onClick = onSearchToggled,
+                        modifier = Modifier.testTag(AppConstants.TestTags.SEARCH_TOGGLE_BUTTON)
+                    ) {
                         Icon(
                             imageVector = if (isSearchActive) Icons.Default.Close else Icons.Default.Search,
                             contentDescription = if (isSearchActive) AppStrings.CLOSE_SEARCH_DESC else AppStrings.SEARCH_BUTTON_DESC
                         )
                     }
                     if (!isSearchActive) {
-                        IconButton(onClick = onRefresh) {
+                        IconButton(
+                            onClick = onRefresh,
+                            modifier = Modifier.testTag(AppConstants.TestTags.REFRESH_BUTTON)
+                        ) {
                             Icon(
                                 imageVector = Icons.Default.Refresh,
                                 contentDescription = AppStrings.REFRESH_BUTTON_DESC
@@ -240,6 +252,7 @@ fun ArticleListContent(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 6.dp)
+                        .testTag(AppConstants.TestTags.OFFLINE_BANNER)
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -267,7 +280,8 @@ fun ArticleListContent(
                     modifier = Modifier
                         .fillMaxWidth()
                         .horizontalScroll(rememberScrollState())
-                        .padding(horizontal = 16.dp, vertical = 4.dp),
+                        .padding(horizontal = 16.dp, vertical = 4.dp)
+                        .testTag(AppConstants.TestTags.CATEGORY_CHIPS_ROW),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     AppConstants.CATEGORIES.forEach { (catKey, catLabel) ->
@@ -276,6 +290,7 @@ fun ArticleListContent(
                             selected = isSelected,
                             onClick = { onCategorySelected(catKey) },
                             label = { Text(catLabel) },
+                            modifier = Modifier.testTag(AppConstants.TestTags.categoryChip(catKey)),
                             colors = FilterChipDefaults.filterChipColors(
                                 selectedContainerColor = MaterialTheme.colorScheme.primary,
                                 selectedLabelColor = MaterialTheme.colorScheme.onPrimary

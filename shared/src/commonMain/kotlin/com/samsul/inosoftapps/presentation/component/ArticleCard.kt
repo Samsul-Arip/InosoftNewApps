@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -28,12 +29,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.SubcomposeAsyncImage
 import com.samsul.inosoftapps.domain.model.Article
 import com.samsul.inosoftapps.presentation.theme.NewsReaderTheme
 import com.samsul.inosoftapps.presentation.util.SampleData
+import com.samsul.inosoftapps.util.AppConstants
 import com.samsul.inosoftapps.util.AppStrings
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
@@ -60,6 +63,7 @@ fun ArticleCard(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
+            .testTag(AppConstants.TestTags.ARTICLE_CARD)
     ) {
         Column(
             modifier = Modifier
@@ -73,28 +77,31 @@ fun ArticleCard(
                         .fillMaxWidth()
                         .height(180.dp)
                         .clip(RoundedCornerShape(12.dp))
-                        .background(MaterialTheme.colorScheme.surfaceVariant)
                 ) {
                     SubcomposeAsyncImage(
                         model = article.imageUrl,
-                        contentDescription = AppStrings.FULLSCREEN_IMAGE_DESC,
+                        contentDescription = article.title,
                         contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxSize(),
                         loading = {
                             Box(
-                                modifier = Modifier.fillMaxWidth().height(180.dp),
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(MaterialTheme.colorScheme.surfaceVariant),
                                 contentAlignment = Alignment.Center
                             ) {
                                 CircularProgressIndicator(
                                     modifier = Modifier.size(32.dp),
-                                    strokeWidth = 2.5.dp,
+                                    strokeWidth = 2.dp,
                                     color = MaterialTheme.colorScheme.primary
                                 )
                             }
                         },
                         error = {
                             Box(
-                                modifier = Modifier.fillMaxWidth().height(180.dp),
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(MaterialTheme.colorScheme.surfaceVariant),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
@@ -156,7 +163,8 @@ fun ArticleCard(
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 2,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.testTag(AppConstants.TestTags.ARTICLE_TITLE)
             )
 
             // Description (max 2 lines)

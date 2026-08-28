@@ -18,7 +18,7 @@ import kotlinx.coroutines.launch
  */
 data class ArticleDetailUiState(
     val article: Article? = null,
-    val isLoading: Boolean = false,
+    val isLoading: Boolean = true,
     val errorMessage: String? = null
 )
 

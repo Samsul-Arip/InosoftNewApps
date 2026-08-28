@@ -268,4 +268,74 @@ class ArticleListViewModelTest {
         assertEquals(1, viewModel.uiState.value.currentPage)
         assertTrue(viewModel.uiState.value.canLoadMore)
     }
+
+    @Test
+    fun init_whenCacheEmpty_maintainsLoadingTrueUntilRefreshCompletes() = runTest(testDispatcher) {
+        // Cache is empty
+        fakeRepo.articlesFlow.value = emptyList()
+
+        val viewModel = ArticleListViewModel(
+            getArticlesUseCase,
+            refreshArticlesUseCase,
+            searchArticlesUseCase
+        )
+
+        // Before coroutines finish, isLoading is true
+        assertTrue(viewModel.uiState.value.isLoading)
+        assertFalse(viewModel.uiState.value.isRefreshing)
+
+        advanceUntilIdle()
+
+        // After refresh finishes with empty repo
+        assertFalse(viewModel.uiState.value.isLoading)
+        assertFalse(viewModel.uiState.value.isRefreshing)
+        assertTrue(viewModel.uiState.value.articles.isEmpty())
+    }
+
+    @Test
+    fun selectCategory_whenCacheEmpty_maintainsLoadingTrue() = runTest(testDispatcher) {
+        fakeRepo.articlesFlow.value = listOf(sampleArticle) // sampleArticle has category "technology"
+
+        val viewModel = ArticleListViewModel(
+            getArticlesUseCase,
+            refreshArticlesUseCase,
+            searchArticlesUseCase
+        )
+        advanceUntilIdle()
+        assertEquals(1, viewModel.uiState.value.articles.size)
+
+        // Switch to "business" where cache has 0 articles
+        viewModel.selectCategory("business")
+
+        // Immediately after switching, isLoading must be true and isRefreshing false (not pull-to-refresh)
+        assertTrue(viewModel.uiState.value.isLoading)
+        assertFalse(viewModel.uiState.value.isRefreshing)
+        assertTrue(viewModel.uiState.value.articles.isEmpty())
+
+        advanceUntilIdle()
+
+        assertEquals("business", viewModel.uiState.value.selectedCategory)
+        assertFalse(viewModel.uiState.value.isLoading)
+    }
+
+    @Test
+    fun selectCategory_whenCachedArticlesExist_loadsCachedArticles() = runTest(testDispatcher) {
+        val businessArticle = sampleArticle.copy(id = "2", category = "business", title = "Market trends")
+        fakeRepo.articlesFlow.value = listOf(sampleArticle, businessArticle)
+
+        val viewModel = ArticleListViewModel(
+            getArticlesUseCase,
+            refreshArticlesUseCase,
+            searchArticlesUseCase
+        )
+        advanceUntilIdle()
+        assertEquals(2, viewModel.uiState.value.articles.size)
+
+        viewModel.selectCategory("business")
+        advanceUntilIdle()
+
+        assertEquals(1, viewModel.uiState.value.articles.size)
+        assertEquals("business", viewModel.uiState.value.articles[0].category)
+        assertFalse(viewModel.uiState.value.isLoading)
+    }
 }
