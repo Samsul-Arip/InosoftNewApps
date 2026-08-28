@@ -8,6 +8,7 @@ import com.samsul.inosoftapps.data.remote.NewsApiService
 import com.samsul.inosoftapps.domain.model.Article
 import com.samsul.inosoftapps.domain.model.DomainError
 import com.samsul.inosoftapps.domain.model.DomainException
+import com.samsul.inosoftapps.domain.model.RefreshResult
 import com.samsul.inosoftapps.domain.repository.ArticleRepository
 import com.samsul.inosoftapps.util.AppConstants
 import com.samsul.inosoftapps.util.AppStrings
@@ -43,7 +44,7 @@ class ArticleRepositoryImpl(
             .flowOn(ioDispatcher)
     }
 
-    override suspend fun refreshArticles(category: String?, page: Int): Result<Boolean> = withContext(ioDispatcher) {
+    override suspend fun refreshArticles(category: String?, page: Int): Result<RefreshResult> = withContext(ioDispatcher) {
         try {
             val response = newsApiService.getTopHeadlines(
                 category = category,
@@ -65,13 +66,19 @@ class ArticleRepositoryImpl(
                 if (page == 1) {
                     if (entities.isNotEmpty()) {
                         articleDao.clearAndInsert(entities, category)
+                    } else {
+                        if (category != null) {
+                            articleDao.deleteArticlesByCategory(category)
+                        } else {
+                            articleDao.deleteArticlesWithNoCategory()
+                        }
                     }
                 } else {
                     if (entities.isNotEmpty()) {
                         articleDao.insertArticles(entities)
                     }
                 }
-                Result.success(hasMore)
+                Result.success(RefreshResult(hasMore = hasMore, articleCount = entities.size))
             } else {
                 val serverError = DomainError.ServerError(
                     code = null,

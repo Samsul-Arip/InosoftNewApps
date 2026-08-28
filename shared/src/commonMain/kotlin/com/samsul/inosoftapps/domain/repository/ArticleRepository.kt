@@ -1,6 +1,7 @@
 package com.samsul.inosoftapps.domain.repository
 
 import com.samsul.inosoftapps.domain.model.Article
+import com.samsul.inosoftapps.domain.model.RefreshResult
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -19,9 +20,9 @@ interface ArticleRepository {
      * Fetches articles from remote network API and caches them locally.
      * @param category Optional category filter.
      * @param page Page number for pagination (default 1).
-     * @return [Result.success] with Boolean indicating if more pages can be loaded, or [Result.failure] on error.
+     * @return [Result.success] with [RefreshResult] containing pagination and count info, or [Result.failure] on error.
      */
-    suspend fun refreshArticles(category: String? = null, page: Int = 1): Result<Boolean>
+    suspend fun refreshArticles(category: String? = null, page: Int = 1): Result<RefreshResult>
 
     /**
      * Observes a single article by its unique ID.

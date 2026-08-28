@@ -62,6 +62,7 @@ import androidx.compose.ui.unit.dp
 import com.samsul.inosoftapps.presentation.component.ArticleCard
 import com.samsul.inosoftapps.presentation.component.EmptyView
 import com.samsul.inosoftapps.presentation.component.LoadingView
+import com.samsul.inosoftapps.presentation.component.NoConnectionView
 import com.samsul.inosoftapps.presentation.theme.NewsReaderTheme
 import com.samsul.inosoftapps.presentation.util.SampleData
 import com.samsul.inosoftapps.presentation.viewmodel.ArticleListUiState
@@ -310,6 +311,13 @@ fun ArticleListContent(
                     (uiState.isLoading || uiState.isRefreshing) && uiState.articles.isEmpty() -> {
                         LoadingView(message = AppStrings.LOADING_MESSAGE)
                     }
+                    uiState.isOffline && uiState.articles.isEmpty() -> {
+                        NoConnectionView(
+                            title = AppStrings.NO_INTERNET_TITLE,
+                            message = uiState.errorMessage ?: AppStrings.NO_INTERNET_CARD_MESSAGE,
+                            onRetry = onRefresh
+                        )
+                    }
                     !uiState.isLoading && !uiState.isRefreshing && uiState.articles.isEmpty() -> {
                         EmptyView(
                             title = if (uiState.searchQuery.isNotEmpty()) AppStrings.EMPTY_DATA_ERROR else AppStrings.EMPTY_ARTICLE_TITLE,
@@ -427,6 +435,31 @@ private fun ArticleListPreview_EmptyState() {
                     isLoading = false,
                     isRefreshing = false,
                     isOffline = false
+                ),
+                isSearchActive = false,
+                onSearchToggled = {},
+                onSearchQueryChanged = {},
+                onClearSearch = {},
+                onCategorySelected = {},
+                onRefresh = {},
+                onLoadMore = {},
+                onArticleClick = {}
+            )
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun ArticleListPreview_NoConnection() {
+    NewsReaderTheme(darkTheme = false) {
+        Surface(color = MaterialTheme.colorScheme.background) {
+            ArticleListContent(
+                uiState = ArticleListUiState(
+                    articles = emptyList(),
+                    isLoading = false,
+                    isRefreshing = false,
+                    isOffline = true
                 ),
                 isSearchActive = false,
                 onSearchToggled = {},

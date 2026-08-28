@@ -3,6 +3,7 @@ package com.samsul.inosoftapps.domain
 import app.cash.turbine.test
 import com.samsul.inosoftapps.domain.model.Article
 import com.samsul.inosoftapps.domain.model.DomainError
+import com.samsul.inosoftapps.domain.model.RefreshResult
 import com.samsul.inosoftapps.domain.model.ResultState
 import com.samsul.inosoftapps.domain.model.dataOrNull
 import com.samsul.inosoftapps.domain.model.isLoading
@@ -36,11 +37,16 @@ class FakeArticleRepository : ArticleRepository {
         }
     }
 
-    override suspend fun refreshArticles(category: String?, page: Int): Result<Boolean> {
+    override suspend fun refreshArticles(category: String?, page: Int): Result<RefreshResult> {
         return if (shouldFailRefresh) {
             Result.failure(Exception("Network error"))
         } else {
-            Result.success(hasMorePages)
+            val count = if (category != null) {
+                articlesFlow.value.count { it.category == category }
+            } else {
+                articlesFlow.value.size
+            }
+            Result.success(RefreshResult(hasMore = hasMorePages, articleCount = count))
         }
     }
 
@@ -125,7 +131,7 @@ class ArticleUseCasesTest {
 
         val result = useCase()
         assertTrue(result.isSuccess)
-        assertTrue(result.getOrNull() == true)
+        assertTrue(result.getOrNull()?.hasMore == true)
     }
 
     @Test

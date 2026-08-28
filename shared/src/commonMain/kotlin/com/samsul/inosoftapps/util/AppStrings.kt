@@ -35,6 +35,7 @@ object AppStrings {
     const val ARTICLE_NOT_FOUND = "Berita tidak ditemukan"
     const val NO_INTERNET_TITLE = "Koneksi Terputus"
     const val NO_INTERNET_MESSAGE = "Tidak ada koneksi internet. Menampilkan berita tersimpan."
+    const val NO_INTERNET_CARD_MESSAGE = "Tidak ada koneksi internet. Periksa koneksi Wi-Fi atau data seluler Anda dan coba lagi."
     const val TIMEOUT_MESSAGE = "Koneksi time out. Coba beberapa saat lagi."
     const val SERVER_ERROR_DEFAULT = "Terjadi kesalahan pada server."
     const val EMPTY_DATA_ERROR = "Tidak ada berita ditemukan."

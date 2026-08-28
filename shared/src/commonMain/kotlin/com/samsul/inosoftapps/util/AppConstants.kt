@@ -78,6 +78,8 @@ object AppConstants {
         const val DETAIL_TITLE: String = "detail_title"
         const val DETAIL_ARTICLE_TITLE: String = "detail_article_title"
         const val BACK_BUTTON: String = "back_button"
+        const val NO_CONNECTION_VIEW: String = "no_connection_view"
+        const val NO_CONNECTION_RETRY_BUTTON: String = "no_connection_retry_button"
 
         fun categoryChip(category: String?): String = "category_chip_${category ?: "all"}"
     }

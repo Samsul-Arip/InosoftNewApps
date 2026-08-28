@@ -1,5 +1,6 @@
 package com.samsul.inosoftapps.domain.usecase
 
+import com.samsul.inosoftapps.domain.model.RefreshResult
 import com.samsul.inosoftapps.domain.repository.ArticleRepository
 
 /**
@@ -11,9 +12,9 @@ class RefreshArticlesUseCase(
     /**
      * @param category Optional category filter.
      * @param page Page index for pagination.
-     * @return Result containing boolean flag indicating if more pages are available.
+     * @return Result containing [RefreshResult] with pagination and count info.
      */
-    suspend operator fun invoke(category: String? = null, page: Int = 1): Result<Boolean> {
+    suspend operator fun invoke(category: String? = null, page: Int = 1): Result<RefreshResult> {
         return repository.refreshArticles(category = category, page = page)
     }
 }

@@ -139,14 +139,20 @@ class ArticleListViewModel(
 
             val result = refreshArticlesUseCase(category = category, page = 1)
 
-            result.onSuccess { hasMore ->
-                _uiState.update {
-                    it.copy(
+            result.onSuccess { refreshResult ->
+                _uiState.update { current ->
+                    current.copy(
                         isOffline = false,
-                        isLoading = false,
                         isRefreshing = false,
+                        isLoading = if (refreshResult.articleCount == 0 && current.articles.isEmpty()) {
+                            false
+                        } else if (current.articles.isNotEmpty()) {
+                            false
+                        } else {
+                            current.isLoading
+                        },
                         currentPage = 1,
-                        canLoadMore = hasMore
+                        canLoadMore = refreshResult.hasMore
                     )
                 }
             }
@@ -184,12 +190,12 @@ class ArticleListViewModel(
 
             val result = refreshArticlesUseCase(category = currentState.selectedCategory, page = nextPage)
 
-            result.onSuccess { hasMore ->
+            result.onSuccess { refreshResult ->
                 _uiState.update {
                     it.copy(
                         isLoadingMore = false,
                         currentPage = nextPage,
-                        canLoadMore = hasMore
+                        canLoadMore = refreshResult.hasMore
                     )
                 }
             }

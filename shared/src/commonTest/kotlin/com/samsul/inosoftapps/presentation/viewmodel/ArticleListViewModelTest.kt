@@ -3,6 +3,7 @@ package com.samsul.inosoftapps.presentation.viewmodel
 import com.samsul.inosoftapps.domain.model.Article
 import com.samsul.inosoftapps.domain.model.DomainError
 import com.samsul.inosoftapps.domain.model.DomainException
+import com.samsul.inosoftapps.domain.model.RefreshResult
 import com.samsul.inosoftapps.domain.repository.ArticleRepository
 import com.samsul.inosoftapps.domain.usecase.GetArticlesUseCase
 import com.samsul.inosoftapps.domain.usecase.RefreshArticlesUseCase
@@ -38,12 +39,17 @@ class FakeRepo : ArticleRepository {
         }
     }
 
-    override suspend fun refreshArticles(category: String?, page: Int): Result<Boolean> {
+    override suspend fun refreshArticles(category: String?, page: Int): Result<RefreshResult> {
         lastRequestedPage = page
         return if (shouldFailRefresh) {
             Result.failure(DomainException(DomainError.NoInternet))
         } else {
-            Result.success(hasMorePages)
+            val count = if (category != null) {
+                articlesFlow.value.count { it.category == category }
+            } else {
+                articlesFlow.value.size
+            }
+            Result.success(RefreshResult(hasMore = hasMorePages, articleCount = count))
         }
     }
 

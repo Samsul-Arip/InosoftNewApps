@@ -84,4 +84,38 @@ class ArticleOfflineUiTest {
         composeTestRule.waitForIdle()
         assertTrue(retryClicked)
     }
+
+    @Test
+    fun displaysNoConnectionCard_whenOfflineAndArticlesEmpty() {
+        var retryClicked by mutableStateOf(false)
+
+        composeTestRule.setContent {
+            NewsReaderTheme {
+                ArticleListContent(
+                    uiState = ArticleListUiState(
+                        articles = emptyList(),
+                        isLoading = false,
+                        isOffline = true
+                    ),
+                    isSearchActive = false,
+                    onSearchToggled = {},
+                    onSearchQueryChanged = {},
+                    onClearSearch = {},
+                    onCategorySelected = {},
+                    onRefresh = { retryClicked = true },
+                    onArticleClick = {}
+                )
+            }
+        }
+
+        // Verify NoConnectionView card with title and card message is displayed
+        composeTestRule.onNodeWithText(AppStrings.NO_INTERNET_TITLE).assertIsDisplayed()
+        composeTestRule.onNodeWithText(AppStrings.NO_INTERNET_CARD_MESSAGE).assertIsDisplayed()
+        composeTestRule.onNodeWithText(AppStrings.RETRY_BUTTON).assertIsDisplayed()
+
+        // Perform click on retry button in NoConnectionView
+        composeTestRule.onNodeWithText(AppStrings.RETRY_BUTTON).performClick()
+        composeTestRule.waitForIdle()
+        assertTrue(retryClicked)
+    }
 }

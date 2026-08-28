@@ -214,7 +214,8 @@ class ArticleRepositoryImplTest {
 
         val page1Result = repository.refreshArticles(page = 1)
         assertTrue(page1Result.isSuccess)
-        assertEquals(true, page1Result.getOrNull())
+        assertEquals(true, page1Result.getOrNull()?.hasMore)
+        assertEquals(1, page1Result.getOrNull()?.articleCount)
 
         // Case 2: totalResults = 10, page 2 (pageSize 7) -> 2 * 7 = 14 >= 10 -> hasMore = false
         fakeApi.mockResponse = fakeApi.mockResponse.copy(
@@ -229,7 +230,8 @@ class ArticleRepositoryImplTest {
 
         val page2Result = repository.refreshArticles(page = 2)
         assertTrue(page2Result.isSuccess)
-        assertEquals(false, page2Result.getOrNull())
+        assertEquals(false, page2Result.getOrNull()?.hasMore)
+        assertEquals(1, page2Result.getOrNull()?.articleCount)
     }
 
     @Test
