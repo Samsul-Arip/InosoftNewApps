@@ -322,7 +322,7 @@ fun ArticleListContent(
                         EmptyView(
                             title = if (uiState.searchQuery.isNotEmpty()) AppStrings.EMPTY_DATA_ERROR else AppStrings.EMPTY_ARTICLE_TITLE,
                             message = if (uiState.searchQuery.isNotEmpty()) AppStrings.searchEmptyMessage(uiState.searchQuery) else AppStrings.EMPTY_ARTICLE_MESSAGE,
-                            onRetry = onRefresh
+                            onRetry = null
                         )
                     }
                     else -> {

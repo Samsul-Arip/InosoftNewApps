@@ -103,8 +103,8 @@ private fun EmptyViewPreview_Light() {
     NewsReaderTheme(darkTheme = false) {
         Surface(color = MaterialTheme.colorScheme.background) {
             EmptyView(
-                title = AppStrings.NO_INTERNET_TITLE,
-                message = AppStrings.NO_INTERNET_MESSAGE,
+                title = AppStrings.EMPTY_ARTICLE_TITLE,
+                message = AppStrings.EMPTY_ARTICLE_MESSAGE,
                 onRetry = {}
             )
         }
@@ -117,8 +117,8 @@ private fun EmptyViewPreview_Dark() {
     NewsReaderTheme(darkTheme = true) {
         Surface(color = MaterialTheme.colorScheme.background) {
             EmptyView(
-                title = AppStrings.NO_INTERNET_TITLE,
-                message = AppStrings.NO_INTERNET_MESSAGE,
+                title = AppStrings.EMPTY_ARTICLE_TITLE,
+                message = AppStrings.EMPTY_ARTICLE_MESSAGE,
                 onRetry = {}
             )
         }

@@ -53,9 +53,7 @@ class ArticleOfflineUiTest {
     }
 
     @Test
-    fun displaysEmptyViewAndHandlesRetry_whenArticlesEmpty() {
-        var retryClicked by mutableStateOf(false)
-
+    fun displaysEmptyView_whenArticlesEmpty() {
         composeTestRule.setContent {
             NewsReaderTheme {
                 ArticleListContent(
@@ -69,20 +67,15 @@ class ArticleOfflineUiTest {
                     onSearchQueryChanged = {},
                     onClearSearch = {},
                     onCategorySelected = {},
-                    onRefresh = { retryClicked = true },
+                    onRefresh = {},
                     onArticleClick = {}
                 )
             }
         }
 
-        // Verify empty view message is displayed
+        // Verify empty view title and message are displayed
         composeTestRule.onNodeWithText(AppStrings.EMPTY_ARTICLE_TITLE).assertIsDisplayed()
-        composeTestRule.onNodeWithText(AppStrings.RETRY_BUTTON).assertIsDisplayed()
-
-        // Perform click on retry button
-        composeTestRule.onNodeWithText(AppStrings.RETRY_BUTTON).performClick()
-        composeTestRule.waitForIdle()
-        assertTrue(retryClicked)
+        composeTestRule.onNodeWithText(AppStrings.EMPTY_ARTICLE_MESSAGE).assertIsDisplayed()
     }
 
     @Test
