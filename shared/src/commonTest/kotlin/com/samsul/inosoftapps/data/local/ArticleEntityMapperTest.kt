@@ -41,6 +41,10 @@ class ArticleEntityMapperTest {
         isBookmarked = false
     )
 
+    /**
+     * Tests that [ArticleEntity.toDomain] correctly maps all database entity fields to domain model properties,
+     * including date formatting into human-readable representation.
+     */
     @Test
     fun entityToDomain_mapsAllFieldsCorrectly() {
         val domain = sampleEntity.toDomain()
@@ -59,6 +63,10 @@ class ArticleEntityMapperTest {
         assertTrue(domain.isBookmarked)
     }
 
+    /**
+     * Tests that [Article.toEntity] correctly transforms a domain model into a Room database entity
+     * with the specified cache timestamp preserved.
+     */
     @Test
     fun domainToEntity_mapsAllFieldsCorrectly() {
         val cachedTimestamp = 1724760500000L
@@ -78,6 +86,10 @@ class ArticleEntityMapperTest {
         assertEquals(cachedTimestamp, entity.cachedAt)
     }
 
+    /**
+     * Tests list extension mappers [List.toDomainList] and [List.toEntityList]
+     * to ensure batch collection transformations map all elements accurately.
+     */
     @Test
     fun listMappers_mapAllItemsCorrectly() {
         val entities = listOf(sampleEntity)

@@ -6,9 +6,9 @@ val propNewsApiKey = "NEWS_API_KEY"
 val propNewsBaseUrl = "NEWS_BASE_URL"
 val propDatabaseName = "DATABASE_NAME"
 
-val defaultNewsBaseUrl = "https://newsapi.org/v2"
+val defaultNewsBaseUrl = "DEFAULT_URL"
 val defaultApiKeyFallback = "API_KEY_HERE"
-val defaultDatabaseName = "news_reader.db"
+val defaultDatabaseName = "DEFAULT_DB"
 val taskGenerateBuildConfig = "generateBuildConfig"
 val iosFrameworkName = "Shared"
 

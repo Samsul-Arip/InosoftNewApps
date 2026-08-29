@@ -5,6 +5,10 @@ import kotlin.test.assertEquals
 
 class NavigationRouteTest {
 
+    /**
+     * Tests that [Screen.ArticleDetail.createRoute] safely encodes complex URL characters (slashes, queries, hashes)
+     * without breaking navigation route segments, and ensures [Screen.ArticleDetail.decodeArticleId] accurately restores it.
+     */
     @Test
     fun createRoute_encodesSpecialCharactersSafely() {
         val rawArticleId = "https://theverge.com/article/kmp?query=1&type=news#header"
@@ -19,6 +23,9 @@ class NavigationRouteTest {
         assertEquals(rawArticleId, decoded)
     }
 
+    /**
+     * Tests that [Screen.ArticleDetail.decodeArticleId] handles null, empty, or whitespace inputs without crashing.
+     */
     @Test
     fun decodeArticleId_handlesNullAndBlankGracefully() {
         assertEquals("", Screen.ArticleDetail.decodeArticleId(null))

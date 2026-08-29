@@ -101,6 +101,10 @@ class ArticleListViewModelTest {
         Dispatchers.resetMain()
     }
 
+    /**
+     * Tests that [ArticleListViewModel] initializes by observing cached articles from the repository
+     * and populates [ArticleListUiState.articles].
+     */
     @Test
     fun init_observesArticlesFromRepository() = runTest(testDispatcher) {
         fakeRepo.articlesFlow.value = listOf(sampleArticle)
@@ -118,6 +122,10 @@ class ArticleListViewModelTest {
         assertNull(viewModel.uiState.value.errorMessage)
     }
 
+    /**
+     * Tests that selecting a category filter updates [ArticleListUiState.selectedCategory]
+     * and filters emitted articles accordingly.
+     */
     @Test
     fun selectCategory_filtersArticlesByCategory() = runTest(testDispatcher) {
         val businessArticle = sampleArticle.copy(id = "2", category = "business", title = "Market trends")
@@ -140,6 +148,10 @@ class ArticleListViewModelTest {
         assertEquals("2", viewModel.uiState.value.articles[0].id)
     }
 
+    /**
+     * Tests searching articles by query updates [ArticleListUiState.searchQuery]
+     * and filters matching results from local database.
+     */
     @Test
     fun searchArticles_filtersMatchingArticles() = runTest(testDispatcher) {
         val otherArticle = sampleArticle.copy(id = "3", title = "Cooking Pasta")
@@ -160,6 +172,10 @@ class ArticleListViewModelTest {
         assertEquals("3", viewModel.uiState.value.articles[0].id)
     }
 
+    /**
+     * Tests that failed refresh requests set a user-friendly error message in [ArticleListUiState]
+     * and [ArticleListViewModel.clearError] clears it.
+     */
     @Test
     fun refreshArticles_onFailure_setsUserFriendlyErrorMessage() = runTest(testDispatcher) {
         fakeRepo.shouldFailRefresh = true
@@ -178,6 +194,10 @@ class ArticleListViewModelTest {
         assertNull(viewModel.uiState.value.errorMessage)
     }
 
+    /**
+     * Tests that network errors occurring when cached articles already exist update [ArticleListUiState.isOffline] to true
+     * while retaining cached articles in the UI list.
+     */
     @Test
     fun refreshArticles_onNetworkErrorWithCachedArticles_setsIsOfflineTrue() = runTest(testDispatcher) {
         fakeRepo.articlesFlow.value = listOf(sampleArticle)
@@ -194,6 +214,10 @@ class ArticleListViewModelTest {
         assertEquals(1, viewModel.uiState.value.articles.size)
     }
 
+    /**
+     * Tests infinite scroll pagination: [ArticleListViewModel.loadMoreArticles] increments [ArticleListUiState.currentPage]
+     * and requests the next page from repository.
+     */
     @Test
     fun loadMoreArticles_incrementsPageAndUpdatesPaginationState() = runTest(testDispatcher) {
         val viewModel = ArticleListViewModel(
@@ -214,6 +238,10 @@ class ArticleListViewModelTest {
         assertFalse(viewModel.uiState.value.isLoadingMore)
     }
 
+    /**
+     * Tests that when [ArticleListUiState.canLoadMore] is false (last page reached),
+     * [ArticleListViewModel.loadMoreArticles] does not trigger redundant network requests.
+     */
     @Test
     fun loadMoreArticles_whenCanLoadMoreIsFalse_doesNotTriggerRefresh() = runTest(testDispatcher) {
         fakeRepo.hasMorePages = false
@@ -236,6 +264,9 @@ class ArticleListViewModelTest {
         assertEquals(1, fakeRepo.lastRequestedPage)
     }
 
+    /**
+     * Tests that pagination is ignored while search mode is active to prevent mixing global search with paginated feeds.
+     */
     @Test
     fun loadMoreArticles_whenSearchActive_doesNotTriggerPagination() = runTest(testDispatcher) {
         val viewModel = ArticleListViewModel(
@@ -255,6 +286,9 @@ class ArticleListViewModelTest {
         assertEquals(1, fakeRepo.lastRequestedPage)
     }
 
+    /**
+     * Tests that selecting a new category resets pagination back to page 1 and restores [ArticleListUiState.canLoadMore].
+     */
     @Test
     fun selectCategory_resetsPaginationToPageOne() = runTest(testDispatcher) {
         val viewModel = ArticleListViewModel(
@@ -275,6 +309,10 @@ class ArticleListViewModelTest {
         assertTrue(viewModel.uiState.value.canLoadMore)
     }
 
+    /**
+     * Tests UI flickering prevention: on initial startup with empty cache, [ArticleListUiState.isLoading] remains true
+     * until network refresh completes to avoid flashing an empty state.
+     */
     @Test
     fun init_whenCacheEmpty_maintainsLoadingTrueUntilRefreshCompletes() = runTest(testDispatcher) {
         // Cache is empty
@@ -298,6 +336,10 @@ class ArticleListViewModelTest {
         assertTrue(viewModel.uiState.value.articles.isEmpty())
     }
 
+    /**
+     * Tests that switching to an un-cached category maintains [ArticleListUiState.isLoading] as true
+     * until remote data arrives, preventing flickering.
+     */
     @Test
     fun selectCategory_whenCacheEmpty_maintainsLoadingTrue() = runTest(testDispatcher) {
         fakeRepo.articlesFlow.value = listOf(sampleArticle) // sampleArticle has category "technology"
@@ -324,6 +366,10 @@ class ArticleListViewModelTest {
         assertFalse(viewModel.uiState.value.isLoading)
     }
 
+    /**
+     * Tests that switching to a category that already has cached articles immediately renders the cached data
+     * and sets [ArticleListUiState.isLoading] to false.
+     */
     @Test
     fun selectCategory_whenCachedArticlesExist_loadsCachedArticles() = runTest(testDispatcher) {
         val businessArticle = sampleArticle.copy(id = "2", category = "business", title = "Market trends")

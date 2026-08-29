@@ -26,6 +26,10 @@ class ArticleNavigationUiTest {
     @get:Rule
     val composeTestRule = createComposeRule()
 
+    /**
+     * UI Test: Verifies that clicking an article item in the list navigates to the Article Detail screen,
+     * and clicking the Back button returns the user back to the Article List screen.
+     */
     @Test
     fun clickingArticle_navigatesToDetailScreen() {
         var selectedArticleId by mutableStateOf<String?>(null)

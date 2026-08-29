@@ -52,6 +52,10 @@ class ArticleRepositoryTest {
         )
     }
 
+    /**
+     * Tests that [ArticleRepository.getArticles] returns a reactive [Flow] of cached articles
+     * emitted directly from the Room DAO Single Source of Truth.
+     */
     @Test
     fun getArticles_emitsFromLocalDao_asSingleSourceOfTruth() = runTest(testDispatcher) {
         fakeDao.setInitialEntities(listOf(sampleEntity))
@@ -64,6 +68,9 @@ class ArticleRepositoryTest {
         }
     }
 
+    /**
+     * Tests that successful remote synchronization fetches articles via API service and persists them into Room DB.
+     */
     @Test
     fun refreshArticles_onSuccess_fetchesRemoteAndCachesToRoom() = runTest(testDispatcher) {
         fakeApiService.fakeArticles = listOf(
@@ -91,6 +98,9 @@ class ArticleRepositoryTest {
         }
     }
 
+    /**
+     * Tests that requesting page 2 (load more) appends new articles to existing cached items in Room DB.
+     */
     @Test
     fun refreshArticles_pageGreaterThanOne_appendsDataToRoomCache() = runTest(testDispatcher) {
         fakeDao.setInitialEntities(listOf(sampleEntity))
@@ -120,6 +130,9 @@ class ArticleRepositoryTest {
         }
     }
 
+    /**
+     * Tests that network failures during refresh preserve the offline cache and return [DomainError.NoInternet].
+     */
     @Test
     fun refreshArticles_onOfflineFailure_preservesLocalCacheAndReturnsNoInternetError() = runTest(testDispatcher) {
         // Prepare existing cache
@@ -144,6 +157,9 @@ class ArticleRepositoryTest {
         }
     }
 
+    /**
+     * Tests that socket timeout exceptions during refresh return a typed [DomainError.Timeout].
+     */
     @Test
     fun refreshArticles_onTimeoutFailure_returnsTimeoutError() = runTest(testDispatcher) {
         fakeApiService.shouldThrowException = SocketTimeoutException("Socket timed out")
@@ -156,6 +172,9 @@ class ArticleRepositoryTest {
         assertTrue(exception.error is DomainError.Timeout)
     }
 
+    /**
+     * Tests edge case when both remote network and local cache are unavailable, returning failure without crashing.
+     */
     @Test
     fun refreshArticles_whenBothRemoteAndLocalAreUnavailable_returnsFailureAndEmptyArticles() = runTest(testDispatcher) {
         // No local cache in Room
@@ -179,6 +198,9 @@ class ArticleRepositoryTest {
         }
     }
 
+    /**
+     * Tests observing a single article by ID, returning the matching article or null if not found.
+     */
     @Test
     fun getArticleById_returnsCorrectArticleOrNull() = runTest(testDispatcher) {
         fakeDao.setInitialEntities(listOf(sampleEntity))
@@ -197,6 +219,9 @@ class ArticleRepositoryTest {
         }
     }
 
+    /**
+     * Tests searching articles locally by title or description query.
+     */
     @Test
     fun searchArticles_returnsMatchingResultsFromLocalDb() = runTest(testDispatcher) {
         val article1 = sampleEntity.copy(id = "1", title = "Belajar Kotlin KMP")
@@ -218,6 +243,9 @@ class ArticleRepositoryTest {
         }
     }
 
+    /**
+     * Tests that refreshing one category does not overwrite or corrupt cached articles belonging to other categories.
+     */
     @Test
     fun refreshArticles_differentCategories_doesNotOverwriteOtherCategoryCache() = runTest(testDispatcher) {
         val sharedUrl = "https://cnbc.com/sp500-futures"

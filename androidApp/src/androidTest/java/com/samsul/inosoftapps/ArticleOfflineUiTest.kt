@@ -24,6 +24,10 @@ class ArticleOfflineUiTest {
     @get:Rule
     val composeTestRule = createComposeRule()
 
+    /**
+     * UI Test: Verifies that when the device is offline but cached articles exist,
+     * the offline indicator banner is displayed while cached articles remain visible and accessible.
+     */
     @Test
     fun displaysOfflineBanner_whenOfflineWithCachedArticles() {
         composeTestRule.setContent {
@@ -52,6 +56,10 @@ class ArticleOfflineUiTest {
         composeTestRule.onNodeWithText(SampleData.sampleArticle.title).assertIsDisplayed()
     }
 
+    /**
+     * UI Test: Verifies that when the article list is empty (and not in offline error state),
+     * a clean EmptyView with explanatory message is rendered.
+     */
     @Test
     fun displaysEmptyView_whenArticlesEmpty() {
         composeTestRule.setContent {
@@ -78,6 +86,10 @@ class ArticleOfflineUiTest {
         composeTestRule.onNodeWithText(AppStrings.EMPTY_ARTICLE_MESSAGE).assertIsDisplayed()
     }
 
+    /**
+     * UI Test: Verifies that when offline and no cached articles exist,
+     * a dedicated NoConnectionView card with a Retry button is displayed and clicking Retry triggers onRefresh.
+     */
     @Test
     fun displaysNoConnectionCard_whenOfflineAndArticlesEmpty() {
         var retryClicked by mutableStateOf(false)

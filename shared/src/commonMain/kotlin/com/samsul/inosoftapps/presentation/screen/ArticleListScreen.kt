@@ -409,7 +409,7 @@ private fun ArticleListPreview_Dark_Offline() {
                     isLoading = false,
                     isRefreshing = false,
                     isOffline = true,
-                    selectedCategory = "technology"
+                    selectedCategory = AppConstants.CATEGORY_TECHNOLOGY
                 ),
                 isSearchActive = false,
                 onSearchToggled = {},

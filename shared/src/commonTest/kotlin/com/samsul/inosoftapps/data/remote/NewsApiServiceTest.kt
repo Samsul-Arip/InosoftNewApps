@@ -53,6 +53,10 @@ class NewsApiServiceTest {
         }
     """.trimIndent()
 
+    /**
+     * Tests that [KtorNewsApiService.getTopHeadlines] correctly sends the expected query parameters
+     * and deserializes the JSON response into DTOs, including filtering out removed articles.
+     */
     @Test
     fun getTopHeadlines_parsesResponseCorrectly() = runTest {
         val mockEngine = MockEngine { request ->
@@ -86,6 +90,10 @@ class NewsApiServiceTest {
         assertEquals("technology", first.category)
     }
 
+    /**
+     * Tests the smart fallback mechanism where an empty result set from the default country (e.g. "id")
+     * automatically triggers a fallback request to the global country (e.g. "us").
+     */
     @Test
     fun getTopHeadlines_triggersSmartFallbackWhenCountryReturnsEmpty() = runTest {
         var callCount = 0
@@ -116,6 +124,10 @@ class NewsApiServiceTest {
         assertEquals("KMP and Compose Multiplatform in 2026", response.articles?.first()?.title)
     }
 
+    /**
+     * Tests that [KtorNewsApiService.searchNews] targets the '/v2/everything' endpoint
+     * with the correct query and sort parameters.
+     */
     @Test
     fun searchNews_callsCorrectEndpointAndParameters() = runTest {
         val mockEngine = MockEngine { request ->
@@ -138,6 +150,10 @@ class NewsApiServiceTest {
         assertEquals(2, response.totalResults)
     }
 
+    /**
+     * Tests that [KtorNewsApiService] dynamically consumes configuration values
+     * (base URL, API key, countries) supplied via [ApiConfigProvider].
+     */
     @Test
     fun ktorNewsApiService_usesInjectedConfigProviderDynamically() = runTest {
         val customConfig = object : ApiConfigProvider {

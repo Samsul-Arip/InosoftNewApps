@@ -14,8 +14,11 @@ final class InosoftAppsUITests: XCTestCase {
         app = nil
     }
 
-    /// ● UI test: app opens → article list is displayed → tap an article → detail screen is displayed
-    /// Equivalent to ArticleNavigationUiTest on Android (clickingArticle_navigatesToDetailScreen)
+    /**
+     * UI Test: Verifies that launching the app displays the article list, tapping an article card
+     * navigates to the Article Detail screen, and tapping the Back button returns to the list.
+     * Exactly equivalent to Android's `ArticleNavigationUiTest.clickingArticle_navigatesToDetailScreen`.
+     */
     @MainActor
     func testClickingArticle_navigatesToDetailScreenAndBack() throws {
         app = XCUIApplication()
@@ -46,8 +49,11 @@ final class InosoftAppsUITests: XCTestCase {
         XCTAssertTrue(appWindow.exists, "Should navigate back to Article list screen")
     }
 
-    /// ● UI test: cached/offline state can still render previously stored articles
-    /// Equivalent to ArticleOfflineUiTest on Android (displaysOfflineBanner_whenOfflineWithCachedArticles)
+    /**
+     * UI Test: Verifies that launching the app in offline mode renders cached articles
+     * and displays the offline status indicator gracefully without crashing.
+     * Exactly equivalent to Android's `ArticleOfflineUiTest.displaysOfflineBanner_whenOfflineWithCachedArticles`.
+     */
     @MainActor
     func testOfflineOrInitialState_rendersGracefully() throws {
         app = XCUIApplication()

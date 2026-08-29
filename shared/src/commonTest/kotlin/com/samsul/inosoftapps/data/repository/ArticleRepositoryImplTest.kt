@@ -144,6 +144,10 @@ class ArticleRepositoryImplTest {
         cachedAt = 1000L
     )
 
+    /**
+     * Tests that [ArticleRepositoryImpl.getArticles] reads from Room DAO as the Single Source of Truth
+     * and maps database entities into domain models.
+     */
     @Test
     fun getArticles_readsFromDaoAsSingleSourceOfTruth() = runTest(testDispatcher) {
         val fakeDao = FakeArticleDaoImpl()
@@ -161,6 +165,9 @@ class ArticleRepositoryImplTest {
         }
     }
 
+    /**
+     * Tests that initial refresh (page 1) atomically clears old category cache and inserts newly fetched articles.
+     */
     @Test
     fun refreshArticles_page1_clearsAndInsertsDao() = runTest(testDispatcher) {
         val fakeDao = FakeArticleDaoImpl()
@@ -176,6 +183,9 @@ class ArticleRepositoryImplTest {
         assertEquals("technology", fakeDao.db.value[0].category)
     }
 
+    /**
+     * Tests that pagination requests (page > 1) append new articles to the Room cache rather than clearing existing entries.
+     */
     @Test
     fun refreshArticles_pageGreaterThan1_appendsToDao() = runTest(testDispatcher) {
         val fakeDao = FakeArticleDaoImpl()
@@ -191,6 +201,9 @@ class ArticleRepositoryImplTest {
         assertEquals(2, fakeDao.db.value.size)
     }
 
+    /**
+     * Tests pagination boundary calculations to ensure `hasMore` is accurately calculated based on total results and page size.
+     */
     @Test
     fun refreshArticles_pagination_calculatesHasMoreAccurately() = runTest(testDispatcher) {
         val fakeDao = FakeArticleDaoImpl()
@@ -234,6 +247,9 @@ class ArticleRepositoryImplTest {
         assertEquals(1, page2Result.getOrNull()?.articleCount)
     }
 
+    /**
+     * Tests that network disconnection during refresh does NOT purge local cache and maps to [DomainError.NoInternet].
+     */
     @Test
     fun refreshArticles_onNetworkError_doesNotClearCacheAndReturnsNoInternetError() = runTest(testDispatcher) {
         val fakeDao = FakeArticleDaoImpl()
@@ -256,6 +272,9 @@ class ArticleRepositoryImplTest {
         assertEquals("cached-1", fakeDao.db.value[0].id)
     }
 
+    /**
+     * Tests that request timeouts preserve existing local cache and return [DomainError.Timeout].
+     */
     @Test
     fun refreshArticles_onTimeoutError_doesNotClearCacheAndReturnsTimeoutError() = runTest(testDispatcher) {
         val fakeDao = FakeArticleDaoImpl()
@@ -275,6 +294,9 @@ class ArticleRepositoryImplTest {
         assertEquals(1, fakeDao.db.value.size)
     }
 
+    /**
+     * Tests that backend HTTP errors or invalid API responses are mapped into [DomainError.ServerError].
+     */
     @Test
     fun refreshArticles_onServerError_returnsServerError() = runTest(testDispatcher) {
         val fakeDao = FakeArticleDaoImpl()
@@ -289,6 +311,9 @@ class ArticleRepositoryImplTest {
         assertTrue(exception.error is DomainError.ServerError)
     }
 
+    /**
+     * Tests that ISO-8601 date strings are correctly parsed into localized Indonesian date representations.
+     */
     @Test
     fun dateFormat_parsesIsoStringsCorrectly() {
         val isoDate = "2026-08-27T08:00:00Z"

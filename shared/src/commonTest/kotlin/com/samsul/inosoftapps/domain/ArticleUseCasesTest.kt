@@ -94,6 +94,9 @@ class ArticleUseCasesTest {
         isBookmarked = true
     )
 
+    /**
+     * Tests that [GetArticlesUseCase] emits all articles provided by the repository.
+     */
     @Test
     fun getArticlesUseCase_emitsArticlesFromRepository() = runTest {
         val fakeRepo = FakeArticleRepository()
@@ -109,6 +112,9 @@ class ArticleUseCasesTest {
         }
     }
 
+    /**
+     * Tests that [GetArticlesUseCase] applies category filters accurately to emitted streams.
+     */
     @Test
     fun getArticlesUseCase_filtersByCategoryCorrectly() = runTest {
         val fakeRepo = FakeArticleRepository()
@@ -124,6 +130,9 @@ class ArticleUseCasesTest {
         }
     }
 
+    /**
+     * Tests that [RefreshArticlesUseCase] successfully triggers repository sync and returns pagination metadata.
+     */
     @Test
     fun refreshArticlesUseCase_returnsSuccess() = runTest {
         val fakeRepo = FakeArticleRepository()
@@ -134,6 +143,9 @@ class ArticleUseCasesTest {
         assertTrue(result.getOrNull()?.hasMore == true)
     }
 
+    /**
+     * Tests that [RefreshArticlesUseCase] propagates repository failures on network errors.
+     */
     @Test
     fun refreshArticlesUseCase_returnsFailureOnNetworkError() = runTest {
         val fakeRepo = FakeArticleRepository().apply { shouldFailRefresh = true }
@@ -143,6 +155,9 @@ class ArticleUseCasesTest {
         assertTrue(result.isFailure)
     }
 
+    /**
+     * Tests that [GetArticleDetailUseCase] returns the matching article for an existing ID.
+     */
     @Test
     fun getArticleDetailUseCase_emitsMatchingArticle() = runTest {
         val fakeRepo = FakeArticleRepository()
@@ -158,6 +173,9 @@ class ArticleUseCasesTest {
         }
     }
 
+    /**
+     * Tests that [GetArticleDetailUseCase] emits null when querying a non-existent article ID.
+     */
     @Test
     fun getArticleDetailUseCase_emitsNullWhenNotFound() = runTest {
         val fakeRepo = FakeArticleRepository()
@@ -172,6 +190,9 @@ class ArticleUseCasesTest {
         }
     }
 
+    /**
+     * Tests that [SearchArticlesUseCase] filters articles matching query keywords across titles and descriptions.
+     */
     @Test
     fun searchArticlesUseCase_filtersByQuery() = runTest {
         val fakeRepo = FakeArticleRepository()
@@ -187,6 +208,9 @@ class ArticleUseCasesTest {
         }
     }
 
+    /**
+     * Tests functional extension helpers on [ResultState] (e.g. onSuccess, onError, map, dataOrNull, isLoading, isSuccess).
+     */
     @Test
     fun resultState_extensionsWorkCorrectly() {
         val successState: ResultState<String> = ResultState.Success("Hello")
