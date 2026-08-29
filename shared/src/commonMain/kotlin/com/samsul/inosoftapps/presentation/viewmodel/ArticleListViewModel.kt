@@ -213,17 +213,7 @@ class ArticleListViewModel(
     }
 
     private fun mapExceptionToMessage(exception: Throwable): String {
-        return when (exception) {
-            is DomainException -> when (exception.error) {
-                is DomainError.NoInternet -> AppStrings.NO_INTERNET_MESSAGE
-                is DomainError.Timeout -> AppStrings.TIMEOUT_MESSAGE
-                is DomainError.ServerError -> exception.error.message ?: AppStrings.SERVER_ERROR_DEFAULT
-                is DomainError.EmptyData -> AppStrings.EMPTY_DATA_ERROR
-                is DomainError.NotFound -> AppStrings.DATA_NOT_FOUND_ERROR
-                is DomainError.Unknown -> exception.error.message ?: AppStrings.UNKNOWN_ERROR
-            }
-            else -> exception.message ?: AppStrings.LOAD_FAILED_MESSAGE
-        }
+        return exception.message ?: AppStrings.LOAD_FAILED_MESSAGE
     }
 
     /**
