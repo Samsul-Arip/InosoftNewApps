@@ -30,7 +30,7 @@ class FakeArticleDaoImpl : ArticleDao {
 
     override fun getArticles(category: String?): Flow<List<ArticleEntity>> {
         return db.map { list ->
-            if (category != null) list.filter { it.category == category } else list
+            if (category == null) list.filter { it.category == null } else list.filter { it.category == category }
         }
     }
 
@@ -139,7 +139,7 @@ class ArticleRepositoryImplTest {
         imageUrl = null,
         publishedAt = "2026-08-27T07:00:00Z",
         sourceName = "Cached Source",
-        category = "general",
+        category = null,
         isBookmarked = false,
         cachedAt = 1000L
     )
@@ -182,7 +182,7 @@ class ArticleRepositoryImplTest {
         val fakeApi = FakeNewsApiServiceImpl()
         val repository = ArticleRepositoryImpl(fakeDao, fakeApi, testDispatcher)
 
-        fakeDao.db.value = listOf(cachedEntity)
+        fakeDao.db.value = listOf(cachedEntity.copy(category = "general"))
 
         val result = repository.refreshArticles(category = "general", page = 2)
 

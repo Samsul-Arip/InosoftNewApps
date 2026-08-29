@@ -33,6 +33,15 @@ fun formatIsoDate(isoDateString: String?): String {
 }
 
 /**
+ * Generates a stable and feed-scoped article ID.
+ * Prevents articles appearing in multiple category feeds from overwriting each other's category in Room DB.
+ */
+fun generateArticleId(url: String, category: String? = null): String {
+    val urlHash = url.hashCode()
+    return if (category != null) "${urlHash}_$category" else "${urlHash}_all"
+}
+
+/**
  * Maps remote [ArticleDto] to local database [ArticleEntity].
  * Discards removed or invalid articles.
  */
@@ -44,7 +53,7 @@ fun ArticleDto.toEntity(category: String? = null, cachedAt: Long = 0L): ArticleE
         return null
     }
 
-    val stableId = articleUrl.hashCode().toString()
+    val stableId = generateArticleId(articleUrl, category)
 
     return ArticleEntity(
         id = stableId,
@@ -106,7 +115,7 @@ fun ArticleDto.toDomain(category: String? = null): Article? {
         return null
     }
 
-    val stableId = articleUrl.hashCode().toString()
+    val stableId = generateArticleId(articleUrl, category)
 
     return Article(
         id = stableId,

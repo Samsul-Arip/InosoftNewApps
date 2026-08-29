@@ -19,7 +19,7 @@ class FakeArticleDao : ArticleDao {
 
     override fun getArticles(category: String?): Flow<List<ArticleEntity>> {
         return entitiesFlow.map { list ->
-            if (category.isNullOrBlank()) list
+            if (category == null) list.filter { it.category == null }
             else list.filter { it.category == category }
         }
     }

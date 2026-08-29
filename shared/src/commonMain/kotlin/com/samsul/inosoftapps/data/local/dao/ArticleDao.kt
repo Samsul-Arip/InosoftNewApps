@@ -21,7 +21,7 @@ interface ArticleDao {
     @Query(
         """
         SELECT * FROM articles 
-        WHERE (:category IS NULL OR category = :category) 
+        WHERE (:category IS NULL AND category IS NULL) OR (category = :category) 
         ORDER BY publishedAt DESC, cachedAt DESC, id ASC
         """
     )
@@ -30,7 +30,7 @@ interface ArticleDao {
     /**
      * Observes a specific article by [id].
      */
-    @Query("SELECT * FROM articles WHERE id = :id LIMIT 1")
+    @Query("SELECT * FROM articles WHERE id = :id OR url = :id LIMIT 1")
     fun getArticleById(id: String): Flow<ArticleEntity?>
 
     /**
@@ -42,6 +42,7 @@ interface ArticleDao {
         WHERE title LIKE '%' || :query || '%' 
            OR description LIKE '%' || :query || '%' 
            OR content LIKE '%' || :query || '%' 
+        GROUP BY url
         ORDER BY publishedAt DESC
         """
     )

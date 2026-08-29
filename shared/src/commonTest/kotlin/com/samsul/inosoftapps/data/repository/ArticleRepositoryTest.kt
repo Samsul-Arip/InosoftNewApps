@@ -217,4 +217,64 @@ class ArticleRepositoryTest {
             cancelAndIgnoreRemainingEvents()
         }
     }
+
+    @Test
+    fun refreshArticles_differentCategories_doesNotOverwriteOtherCategoryCache() = runTest(testDispatcher) {
+        val sharedUrl = "https://cnbc.com/sp500-futures"
+        val businessArticleDto = ArticleDto(
+            source = SourceDto(id = "cnbc", name = "CNBC"),
+            author = "Lee Ying Shan",
+            title = "S&P 500 futures are little changed",
+            description = "Investors count down to Warsh's address",
+            url = sharedUrl,
+            urlToImage = "https://cnbc.com/image.jpg",
+            publishedAt = "2026-08-28T11:17:00Z",
+            content = "Content"
+        )
+
+        // 1. Refresh "business" tab
+        fakeApiService.fakeArticles = listOf(businessArticleDto)
+        val businessResult = repository.refreshArticles(category = "business", page = 1)
+        assertTrue(businessResult.isSuccess)
+
+        // 2. Refresh "technology" tab with tech article
+        val techArticleDto = ArticleDto(
+            title = "Apple Unveils New Device",
+            url = "https://theverge.com/apple",
+            publishedAt = "2026-08-28T12:00:00Z"
+        )
+        fakeApiService.fakeArticles = listOf(techArticleDto)
+        val techResult = repository.refreshArticles(category = "technology", page = 1)
+        assertTrue(techResult.isSuccess)
+
+        // 3. Refresh "all" tab (category = null) which also contains the same S&P 500 article
+        fakeApiService.fakeArticles = listOf(businessArticleDto, techArticleDto)
+        val allResult = repository.refreshArticles(category = null, page = 1)
+        assertTrue(allResult.isSuccess)
+
+        // 4. Verify that "business" category STILL has the S&P 500 article
+        repository.getArticles("business").test {
+            val businessArticles = awaitItem()
+            assertEquals(1, businessArticles.size)
+            assertEquals("S&P 500 futures are little changed", businessArticles.first().title)
+            assertEquals("business", businessArticles.first().category)
+            cancelAndIgnoreRemainingEvents()
+        }
+
+        // 5. Verify that "technology" category STILL has the Apple article
+        repository.getArticles("technology").test {
+            val techArticles = awaitItem()
+            assertEquals(1, techArticles.size)
+            assertEquals("Apple Unveils New Device", techArticles.first().title)
+            assertEquals("technology", techArticles.first().category)
+            cancelAndIgnoreRemainingEvents()
+        }
+
+        // 6. Verify that "all" category has both articles
+        repository.getArticles(null).test {
+            val allArticles = awaitItem()
+            assertEquals(2, allArticles.size)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
 }
