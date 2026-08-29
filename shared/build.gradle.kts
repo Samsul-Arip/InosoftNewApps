@@ -4,9 +4,11 @@ import java.util.Properties
 // Build script configuration constants
 val propNewsApiKey = "NEWS_API_KEY"
 val propNewsBaseUrl = "NEWS_BASE_URL"
-val defaultNewsBaseUrl = "DEFAULT_BASE_URL_HERE"
+val propDatabaseName = "DATABASE_NAME"
+
+val defaultNewsBaseUrl = "https://newsapi.org/v2"
 val defaultApiKeyFallback = "API_KEY_HERE"
-val defaultCountryCode = "id"
+val defaultDatabaseName = "news_reader.db"
 val taskGenerateBuildConfig = "generateBuildConfig"
 val iosFrameworkName = "Shared"
 
@@ -36,6 +38,10 @@ val newsBaseUrl: String = (localProperties.getProperty(propNewsBaseUrl)
     ?: System.getenv(propNewsBaseUrl)
     ?: defaultNewsBaseUrl).trim()
 
+val dbName: String = (localProperties.getProperty(propDatabaseName)
+    ?: System.getenv(propDatabaseName)
+    ?: defaultDatabaseName).trim()
+
 val generatedBuildConfigDir = layout.buildDirectory.dir("generated/source/buildConfig/commonMain/kotlin")
 
 abstract class GenerateBuildConfigTask : DefaultTask() {
@@ -46,7 +52,7 @@ abstract class GenerateBuildConfigTask : DefaultTask() {
     abstract val baseUrl: Property<String>
 
     @get:Input
-    abstract val defaultCountry: Property<String>
+    abstract val databaseName: Property<String>
 
     @get:OutputDirectory
     abstract val outputDir: DirectoryProperty
@@ -67,7 +73,7 @@ abstract class GenerateBuildConfigTask : DefaultTask() {
             object BuildKonfig {
                 const val BASE_URL: String = "${baseUrl.get()}"
                 const val API_KEY: String = "${apiKey.get()}"
-                const val DEFAULT_COUNTRY: String = "${defaultCountry.get()}"
+                const val DATABASE_NAME: String = "${databaseName.get()}"
             }
             """.trimIndent()
         )
@@ -77,7 +83,7 @@ abstract class GenerateBuildConfigTask : DefaultTask() {
 val generateBuildConfigTask = tasks.register<GenerateBuildConfigTask>(taskGenerateBuildConfig) {
     apiKey.set(newsApiKey)
     baseUrl.set(newsBaseUrl)
-    defaultCountry.set(defaultCountryCode)
+    databaseName.set(dbName)
     outputDir.set(generatedBuildConfigDir)
 }
 

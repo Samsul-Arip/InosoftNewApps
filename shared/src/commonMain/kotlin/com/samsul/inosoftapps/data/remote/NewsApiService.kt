@@ -23,7 +23,7 @@ interface NewsApiService {
     suspend fun getTopHeadlines(
         country: String = "",
         category: String? = null,
-        page: Int = 1,
+        page: Int = AppConstants.INITIAL_PAGE,
         pageSize: Int = AppConstants.DEFAULT_PAGE_SIZE
     ): NewsResponseDto
 
@@ -35,7 +35,7 @@ interface NewsApiService {
      */
     suspend fun searchNews(
         query: String,
-        page: Int = 1,
+        page: Int = AppConstants.INITIAL_PAGE,
         pageSize: Int = AppConstants.DEFAULT_PAGE_SIZE
     ): NewsResponseDto
 }

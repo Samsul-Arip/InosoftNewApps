@@ -2,6 +2,7 @@ package com.samsul.inosoftapps.domain.usecase
 
 import com.samsul.inosoftapps.domain.model.RefreshResult
 import com.samsul.inosoftapps.domain.repository.ArticleRepository
+import com.samsul.inosoftapps.util.AppConstants
 
 /**
  * UseCase to trigger remote sync of articles with pagination support.
@@ -14,7 +15,7 @@ class RefreshArticlesUseCase(
      * @param page Page index for pagination.
      * @return Result containing [RefreshResult] with pagination and count info.
      */
-    suspend operator fun invoke(category: String? = null, page: Int = 1): Result<RefreshResult> {
+    suspend operator fun invoke(category: String? = null, page: Int = AppConstants.INITIAL_PAGE): Result<RefreshResult> {
         return repository.refreshArticles(category = category, page = page)
     }
 }

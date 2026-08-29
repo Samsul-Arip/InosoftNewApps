@@ -8,6 +8,7 @@ import com.samsul.inosoftapps.domain.model.DomainException
 import com.samsul.inosoftapps.domain.usecase.GetArticlesUseCase
 import com.samsul.inosoftapps.domain.usecase.RefreshArticlesUseCase
 import com.samsul.inosoftapps.domain.usecase.SearchArticlesUseCase
+import com.samsul.inosoftapps.util.AppConstants
 import com.samsul.inosoftapps.util.AppStrings
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -29,7 +30,7 @@ data class ArticleListUiState(
     val selectedCategory: String? = null,
     val searchQuery: String = "",
     val errorMessage: String? = null,
-    val currentPage: Int = 1,
+    val currentPage: Int = AppConstants.INITIAL_PAGE,
     val isLoadingMore: Boolean = false,
     val canLoadMore: Boolean = true
 )
@@ -66,7 +67,7 @@ class ArticleListViewModel(
                 articles = emptyList(),
                 isLoading = true,
                 isRefreshing = false,
-                currentPage = 1,
+                currentPage = AppConstants.INITIAL_PAGE,
                 canLoadMore = true
             )
         }
@@ -132,12 +133,12 @@ class ArticleListViewModel(
                     isLoading = !hasCachedArticles,
                     isRefreshing = hasCachedArticles,
                     errorMessage = null,
-                    currentPage = 1,
+                    currentPage = AppConstants.INITIAL_PAGE,
                     canLoadMore = true
                 )
             }
 
-            val result = refreshArticlesUseCase(category = category, page = 1)
+            val result = refreshArticlesUseCase(category = category, page = AppConstants.INITIAL_PAGE)
 
             result.onSuccess { refreshResult ->
                 _uiState.update { current ->
@@ -151,7 +152,7 @@ class ArticleListViewModel(
                         } else {
                             current.isLoading
                         },
-                        currentPage = 1,
+                        currentPage = AppConstants.INITIAL_PAGE,
                         canLoadMore = refreshResult.hasMore
                     )
                 }

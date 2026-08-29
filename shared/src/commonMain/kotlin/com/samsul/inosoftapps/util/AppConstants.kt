@@ -6,9 +6,6 @@ package com.samsul.inosoftapps.util
  */
 object AppConstants {
 
-    // Database Configuration
-    const val DATABASE_NAME: String = "news_reader.db"
-
     // Network & Timeout Configuration
     const val NETWORK_TIMEOUT_MILLIS: Long = 15_000L
     const val DEFAULT_PAGE_SIZE: Int = 7

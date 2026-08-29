@@ -1,11 +1,14 @@
 ## SDK & NewsAPI Configuration Template
-## Salin file ini menjadi 'local.properties' dan isi API Key NewsAPI Anda.
+## Salin file ini menjadi 'local.properties' dan sesuaikan konfigurasinya.
 
 # Android SDK Path (sesuaikan dengan direktori SDK Anda)
 sdk.dir=/Users/username/Library/Android/sdk
 
-# NewsAPI.org API Key (Daftar gratis di https://newsapi.org)
+# 🔑 NewsAPI Credentials & Secrets
 NEWS_API_KEY=YOUR_NEWS_API_KEY_HERE
 
-# NewsAPI Base URL (Opsional, default: https://newsapi.org/v2)
+# 🌐 Base URL Backend / Endpoint Host (Dev / Staging / Prod)
 NEWS_BASE_URL=https://newsapi.org/v2
+
+# 🗄️ Nama Database Lokal & Storage Identifier (Opsional, default: news_reader.db)
+DATABASE_NAME=news_reader.db
